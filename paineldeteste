@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel de Incidente</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px;
+            width: 100%;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .resultado {
+            margin-top: 20px;
+            padding: 15px;
+            background: #eef3ff;
+            border-radius: 8px;
+        }
+
+        .escalation {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Painel de Incidente</h1>
+
+    <label>Lado A:</label>
+    <input type="text" id="ladoA" placeholder="Ex: Empresa A">
+
+    <label>Lado B:</label>
+    <input type="text" id="ladoB" placeholder="Ex: Empresa B">
+
+    <label>ID do chamado (seu):</label>
+    <input type="text" id="idInterno" placeholder="Ex: INC12345">
+
+    <label>ID da rede acionada:</label>
+    <input type="text" id="idExterno" placeholder="Ex: TICKET98765">
+
+    <label>Horário de início do incidente:</label>
+    <input type="datetime-local" id="inicio">
+
+    <button onclick="calcularEscalation()">Calcular Escalation</button>
+
+    <div id="resultado" class="resultado" style="display:none;"></div>
+</div>
+
+<script>
+function formatarData(data) {
+    return data.toLocaleString('pt-BR');
+}
+
+function calcularEscalation() {
+    const ladoA = document.getElementById('ladoA').value;
+    const ladoB = document.getElementById('ladoB').value;
+    const idInterno = document.getElementById('idInterno').value;
+    const idExterno = document.getElementById('idExterno').value;
+    const inicio = document.getElementById('inicio').value;
+
+    if (!inicio) {
+        alert("Informe o horário de início!");
+        return;
+    }
+
+    let dataInicio = new Date(inicio);
+
+    let escalation4h = new Date(dataInicio.getTime() + (4 * 60 * 60 * 1000));
+    let escalation8h = new Date(dataInicio.getTime() + (8 * 60 * 60 * 1000));
+    let escalation12h = new Date(dataInicio.getTime() + (12 * 60 * 60 * 1000));
+
+    const resultado = `
+        <h2>Resumo do Incidente</h2>
+        <p><strong>Lado A:</strong> ${ladoA}</p>
+        <p><strong>Lado B:</strong> ${ladoB}</p>
+        <p><strong>ID Interno:</strong> ${idInterno}</p>
+        <p><strong>ID Rede Acionada:</strong> ${idExterno}</p>
+        <p><strong>Início:</strong> ${formatarData(dataInicio)}</p>
+
+        <h3>Escalation</h3>
+
+        <div class="escalation">
+            <strong>4h - Fulano 1:</strong><br>
+            ${formatarData(escalation4h)}
+        </div>
+
+        <div class="escalation">
+            <strong>8h - Fulano 2:</strong><br>
+            ${formatarData(escalation8h)}
+        </div>
+
+        <div class="escalation">
+            <strong>12h - Fulano 3:</strong><br>
+            ${formatarData(escalation12h)}
+        </div>
+    `;
+
+    const divResultado = document.getElementById('resultado');
+    divResultado.innerHTML = resultado;
+    divResultado.style.display = "block";
+}
+</script>
+
+</body>
+</html>
