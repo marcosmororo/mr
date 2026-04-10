@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Painel de Incidente</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #f4f6f9;
+    padding: 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+}
+
+button {
+    margin-top: 10px;
+    padding: 10px;
+    width: 100%;
+    background: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.resultado, .historico {
+    margin-top: 20px;
+    padding: 15px;
+    background: #eef3ff;
+    border-radius: 8px;
+}
+
+.escalation {
+    background: #fff;
+    padding: 10px;
+    margin-top: 10px;
+    border-left: 4px solid #007bff;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Painel de Incidente</h1>
+
+    <label>Lado A:</label>
+    <input type="text" id="ladoA">
+
+    <label>Lado B:</label>
+    <input type="text" id="ladoB">
+
+    <label>ID Interno:</label>
+    <input type="text" id="idInterno">
+
+    <label>ID Rede:</label>
+    <input type="text" id="idExterno">
+
+    <label>Início:</label>
+    <input type="datetime-local" id="inicio">
+
+    <button onclick="criarIncidente()">Registrar Incidente</button>
+
+    <div id="resultado" class="resultado"></div>
+
+    <div class="historico">
+        <h2>Histórico</h2>
+        <div id="lista"></div>
+    </div>
+</div>
+
+<script>
+function formatarData(data) {
+    return new Date(data).toLocaleString('pt-BR');
+}
+
+function calcularHoras(data, horas) {
+    return new Date(new Date(data).getTime() + horas * 3600000);
+}
+
+function criarIncidente() {
+    const incidente = {
+        id: Date.now(),
+        ladoA: ladoA.value,
+        ladoB: ladoB.value,
+        idInterno: idInterno.value,
+        idExterno: idExterno.value,
+        inicio: inicio.value,
+        checklist: {
+            h4: false,
+            h8: false,
+            h12: false
+        }
+    };
+
+    let lista = JSON.parse(localStorage.getItem("incidentes") || "[]");
+    lista.push(incidente);
+    localStorage.setItem("incidentes", JSON.stringify(lista));
+
+    carregar();
+}
+
+function toggleCheck(id, campo) {
+    let lista = JSON.parse(localStorage.getItem("incidentes"));
+    let item = lista.find(i => i.id === id);
+    item.checklist[campo] = !item.checklist[campo];
+    localStorage.setItem("incidentes", JSON.stringify(lista));
+    carregar();
+}
+
+function carregar() {
+    let lista = JSON.parse(localStorage.getItem("incidentes") || "[]");
+    const div = document.getElementById("lista");
+    div.innerHTML = "";
+
+    lista.reverse().forEach(i => {
+        div.innerHTML += `
+            <div class="resultado">
+                <strong>${i.ladoA} x ${i.ladoB}</strong><br>
+                ID: ${i.idInterno} | Rede: ${i.idExterno}<br>
+                Início: ${formatarData(i.inicio)}
+
+                <div class="escalation">
+                    <label>
+                        <input type="checkbox" ${i.checklist.h4 ? "checked" : ""} 
+                        onclick="toggleCheck(${i.id}, 'h4')">
+                        4h - Fulano 1 (${formatarData(calcularHoras(i.inicio,4))})
+                    </label>
+                </div>
+
+                <div class="escalation">
+                    <label>
+                        <input type="checkbox" ${i.checklist.h8 ? "checked" : ""} 
+                        onclick="toggleCheck(${i.id}, 'h8')">
+                        8h - Fulano 2 (${formatarData(calcularHoras(i.inicio,8))})
+                    </label>
+                </div>
+
+                <div class="escalation">
+                    <label>
+                        <input type="checkbox" ${i.checklist.h12 ? "checked" : ""} 
+                        onclick="toggleCheck(${i.id}, 'h12')">
+                        12h - Fulano 3 (${formatarData(calcularHoras(i.inicio,12))})
+                    </label>
+                </div>
+            </div>
+        `;
+    });
+}
+
+carregar();
+</script>
+
+</body>
+</html>
