@@ -1,66 +1,97 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Gerador de Card - Evento</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Fotos</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: #111;
-      color: #fff;
-      text-align: center;
-    }
+<style>
+body {
+  font-family: Arial;
+  background: #0f0f0f;
+  color: #fff;
+  text-align: center;
+}
 
-    h1 {
-      margin: 20px;
-    }
+.container {
+  max-width: 400px;
+  margin: auto;
+}
 
-    canvas {
-      border: 2px solid #333;
-      border-radius: 10px;
-      max-width: 90%;
-    }
+canvas {
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 10px;
+}
 
-    input, button {
-      margin: 10px;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-    }
+.controls {
+  background: #1c1c1c;
+  padding: 15px;
+  border-radius: 12px;
+  margin-top: 10px;
+}
 
-    button {
-      background: #ff6600;
-      color: white;
-      cursor: pointer;
-    }
+label {
+  display: block;
+  margin-top: 10px;
+}
 
-    button:hover {
-      background: #ff8533;
-    }
-  </style>
+input[type="range"] {
+  width: 100%;
+}
+
+button {
+  margin-top: 15px;
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 10px;
+  background: #3b82f6;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.gallery {
+  margin-top: 30px;
+}
+
+.gallery img {
+  width: 100px;
+  margin: 5px;
+  border-radius: 8px;
+}
+</style>
 </head>
 
 <body>
 
-<h1>Gerar sua foto 🏃</h1>
+<h2>Gerar sua Foto 🏃</h2>
+
+<div class="container">
 
 <input type="file" id="upload" accept="image/*">
 
-<br>
+<canvas id="canvas" width="1080" height="1080"></canvas>
 
-<label>Zoom</label>
-<input type="range" id="zoom" min="1" max="3" step="0.1" value="1">
+<div class="controls">
+  <label>Zoom: <span id="zoomVal">100%</span></label>
+  <input type="range" id="zoom" min="1" max="3" step="0.1" value="1">
 
-<br>
+  <label>Posição Horizontal: <span id="xVal">50%</span></label>
+  <input type="range" id="posX" min="-500" max="500" value="0">
 
-<canvas id="canvas" width="1080" height="1920"></canvas>
+  <label>Posição Vertical: <span id="yVal">50%</span></label>
+  <input type="range" id="posY" min="-500" max="500" value="0">
 
-<br>
+  <button onclick="baixar()">⬇ Baixar Imagem</button>
+</div>
 
-<button onclick="baixar()">Baixar imagem</button>
+<div class="gallery" id="gallery">
+  <h3>Fotos geradas</h3>
+</div>
+
+</div>
 
 <script>
 const canvas = document.getElementById("canvas");
@@ -68,14 +99,21 @@ const ctx = canvas.getContext("2d");
 
 let imgUser = null;
 let molde = new Image();
-molde.src = "molde.png";
+molde.src = "molde.png"; // SUA ARTE
 
 let scale = 1;
 let posX = 0;
 let posY = 0;
-let dragging = false;
 
-document.getElementById("upload").addEventListener("change", function(e){
+// área fixa da foto (onde o rosto vai ficar)
+const area = {
+  x: 140,
+  y: 200,
+  w: 800,
+  h: 800
+};
+
+document.getElementById("upload").addEventListener("change", e => {
   const file = e.target.files[0];
   const reader = new FileReader();
 
@@ -88,21 +126,28 @@ document.getElementById("upload").addEventListener("change", function(e){
   reader.readAsDataURL(file);
 });
 
-document.getElementById("zoom").addEventListener("input", function(e){
-  scale = parseFloat(e.target.value);
+// sliders
+const zoom = document.getElementById("zoom");
+const posXInput = document.getElementById("posX");
+const posYInput = document.getElementById("posY");
+
+zoom.oninput = () => {
+  scale = parseFloat(zoom.value);
+  document.getElementById("zoomVal").innerText = Math.round(scale * 100) + "%";
   draw();
-});
+};
 
-canvas.addEventListener("mousedown", () => dragging = true);
-canvas.addEventListener("mouseup", () => dragging = false);
+posXInput.oninput = () => {
+  posX = parseInt(posXInput.value);
+  document.getElementById("xVal").innerText = posXInput.value;
+  draw();
+};
 
-canvas.addEventListener("mousemove", (e) => {
-  if(dragging){
-    posX += e.movementX;
-    posY += e.movementY;
-    draw();
-  }
-});
+posYInput.oninput = () => {
+  posY = parseInt(posYInput.value);
+  document.getElementById("yVal").innerText = posYInput.value;
+  draw();
+};
 
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -111,17 +156,31 @@ function draw(){
     const w = imgUser.width * scale;
     const h = imgUser.height * scale;
 
-    ctx.drawImage(imgUser, posX, posY, w, h);
+    ctx.drawImage(
+      imgUser,
+      area.x + posX,
+      area.y + posY,
+      w,
+      h
+    );
   }
 
   ctx.drawImage(molde, 0, 0, canvas.width, canvas.height);
 }
 
+// download + salvar na galeria
 function baixar(){
+  const url = canvas.toDataURL();
+
   const link = document.createElement("a");
-  link.download = "minha-foto.png";
-  link.href = canvas.toDataURL();
+  link.download = "foto.png";
+  link.href = url;
   link.click();
+
+  // salvar na galeria
+  const img = document.createElement("img");
+  img.src = url;
+  document.getElementById("gallery").appendChild(img);
 }
 </script>
 
