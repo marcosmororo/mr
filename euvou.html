@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gerador de Fotos</title>
+<title>Gerador de Story</title>
 
 <style>
 body {
@@ -52,12 +52,8 @@ button {
   cursor: pointer;
 }
 
-.gallery {
-  margin-top: 30px;
-}
-
 .gallery img {
-  width: 100px;
+  width: 80px;
   margin: 5px;
   border-radius: 8px;
 }
@@ -66,29 +62,29 @@ button {
 
 <body>
 
-<h2>Gerar sua Foto 🏃</h2>
+<h2>Gerar seu Story 🏃</h2>
 
 <div class="container">
 
 <input type="file" id="upload" accept="image/*">
 
-<canvas id="canvas" width="1080" height="1080"></canvas>
+<canvas id="canvas" width="1080" height="1920"></canvas>
 
 <div class="controls">
   <label>Zoom: <span id="zoomVal">100%</span></label>
   <input type="range" id="zoom" min="1" max="3" step="0.1" value="1">
 
-  <label>Posição Horizontal: <span id="xVal">50%</span></label>
+  <label>Posição Horizontal: <span id="xVal">0</span></label>
   <input type="range" id="posX" min="-500" max="500" value="0">
 
-  <label>Posição Vertical: <span id="yVal">50%</span></label>
-  <input type="range" id="posY" min="-500" max="500" value="0">
+  <label>Posição Vertical: <span id="yVal">0</span></label>
+  <input type="range" id="posY" min="-800" max="800" value="0">
 
-  <button onclick="baixar()">⬇ Baixar Imagem</button>
+  <button onclick="baixar()">⬇ Baixar Story</button>
 </div>
 
 <div class="gallery" id="gallery">
-  <h3>Fotos geradas</h3>
+  <h3>Stories criados</h3>
 </div>
 
 </div>
@@ -99,18 +95,18 @@ const ctx = canvas.getContext("2d");
 
 let imgUser = null;
 let molde = new Image();
-molde.src = "molde.png"; // SUA ARTE
+molde.src = "molde.png"; // SUA ARTE 1080x1920
 
 let scale = 1;
 let posX = 0;
 let posY = 0;
 
-// área fixa da foto (onde o rosto vai ficar)
+// 🔥 área ideal (ajuste conforme sua arte)
 const area = {
   x: 140,
-  y: 200,
+  y: 400,
   w: 800,
-  h: 800
+  h: 900
 };
 
 document.getElementById("upload").addEventListener("change", e => {
@@ -168,16 +164,15 @@ function draw(){
   ctx.drawImage(molde, 0, 0, canvas.width, canvas.height);
 }
 
-// download + salvar na galeria
 function baixar(){
-  const url = canvas.toDataURL();
+  const url = canvas.toDataURL("image/png");
 
   const link = document.createElement("a");
-  link.download = "foto.png";
+  link.download = "story.png";
   link.href = url;
   link.click();
 
-  // salvar na galeria
+  // galeria
   const img = document.createElement("img");
   img.src = url;
   document.getElementById("gallery").appendChild(img);
