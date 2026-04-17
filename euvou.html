@@ -2,59 +2,42 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <title>Gerador de Card - Evento</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Eu Vou Eventos</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
     body {
       margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: #0f0f0f;
+      font-family: Arial;
+      background: #111;
       color: #fff;
-    }
-
-    header {
-      background: #ff6600;
-      padding: 20px;
       text-align: center;
-      font-weight: 800;
-      font-size: 24px;
     }
 
-    .container {
-      padding: 20px;
+    h1 {
+      margin: 20px;
     }
 
-    .event {
-      background: #1c1c1c;
-      border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    canvas {
+      border: 2px solid #333;
+      border-radius: 10px;
+      max-width: 90%;
     }
 
-    .event h2 {
-      margin: 0;
-    }
-
-    .event p {
-      color: #ccc;
-    }
-
-    .btn {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 10px 15px;
-      background: #ff6600;
-      color: #fff;
+    input, button {
+      margin: 10px;
+      padding: 10px;
       border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
+      border: none;
     }
 
-    .btn:hover {
+    button {
+      background: #ff6600;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
       background: #ff8533;
     }
   </style>
@@ -62,25 +45,85 @@
 
 <body>
 
-<header>EU VOU 🏃‍♂️</header>
+<h1>Gerar sua foto 🏃</h1>
 
-<div class="container">
+<input type="file" id="upload" accept="image/*">
 
-  <div class="event">
-    <h2>Corrida Santo Isidro 2026</h2>
-    <p>📍 Delmiro Gouveia - AL</p>
-    <p>📅 15 de Maio de 2026</p>
-    <a href="#" class="btn">Fazer Inscrição</a>
-  </div>
+<br>
 
-  <div class="event">
-    <h2>Meia Maratona do Sertão</h2>
-    <p>📍 Paulo Afonso - BA</p>
-    <p>📅 10 de Junho de 2026</p>
-    <a href="#" class="btn">Fazer Inscrição</a>
-  </div>
+<label>Zoom</label>
+<input type="range" id="zoom" min="1" max="3" step="0.1" value="1">
 
-</div>
+<br>
+
+<canvas id="canvas" width="1080" height="1920"></canvas>
+
+<br>
+
+<button onclick="baixar()">Baixar imagem</button>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let imgUser = null;
+let molde = new Image();
+molde.src = "molde.png";
+
+let scale = 1;
+let posX = 0;
+let posY = 0;
+let dragging = false;
+
+document.getElementById("upload").addEventListener("change", function(e){
+  const file = e.target.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(event){
+    imgUser = new Image();
+    imgUser.onload = draw;
+    imgUser.src = event.target.result;
+  };
+
+  reader.readAsDataURL(file);
+});
+
+document.getElementById("zoom").addEventListener("input", function(e){
+  scale = parseFloat(e.target.value);
+  draw();
+});
+
+canvas.addEventListener("mousedown", () => dragging = true);
+canvas.addEventListener("mouseup", () => dragging = false);
+
+canvas.addEventListener("mousemove", (e) => {
+  if(dragging){
+    posX += e.movementX;
+    posY += e.movementY;
+    draw();
+  }
+});
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  if(imgUser){
+    const w = imgUser.width * scale;
+    const h = imgUser.height * scale;
+
+    ctx.drawImage(imgUser, posX, posY, w, h);
+  }
+
+  ctx.drawImage(molde, 0, 0, canvas.width, canvas.height);
+}
+
+function baixar(){
+  const link = document.createElement("a");
+  link.download = "minha-foto.png";
+  link.href = canvas.toDataURL();
+  link.click();
+}
+</script>
 
 </body>
 </html>
