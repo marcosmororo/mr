@@ -2,91 +2,47 @@
 
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gerador de Story</title>
 
 <style>
-* { box-sizing: border-box; }
-
+*{box-sizing:border-box}
 body{
   margin:0;
-  font-family: system-ui, -apple-system, Arial, sans-serif;
+  font-family:Arial;
   background:#0f0f0f;
   color:#fff;
   text-align:center;
 }
-
-h2{ margin:14px 0; }
-
 .container{
   max-width:420px;
   margin:auto;
   padding:10px;
 }
-
-input[type="file"]{
-  margin:10px 0;
-  width:100%;
-}
-
 canvas{
   width:100%;
-  border-radius:14px;
+  border-radius:12px;
   margin-top:10px;
-  background:transparent; /* sem preto */
   touch-action:none;
 }
-
 .controls{
   background:#1c1c1c;
-  padding:14px;
-  border-radius:14px;
+  padding:15px;
+  border-radius:12px;
   margin-top:10px;
 }
-
-label{
-  display:block;
-  margin-top:12px;
-  font-size:14px;
-  text-align:left;
-}
-
-.row{
-  display:flex;
-  gap:8px;
-}
-
-.row button{
-  flex:1;
-}
-
-input[type="range"]{
-  width:100%;
-}
-
+input[type="range"]{width:100%}
 button{
-  margin-top:12px;
+  margin-top:10px;
+  width:100%;
   padding:14px;
   border:none;
   border-radius:10px;
   background:#3b82f6;
   color:#fff;
-  font-weight:700;
-  cursor:pointer;
-  font-size:15px;
+  font-weight:bold;
 }
-
-button.secondary{
-  background:#374151;
-}
-
-button:hover{ filter:brightness(1.1); }
-
-.gallery{
-  margin-top:22px;
-}
-
 .gallery img{
   width:80px;
   margin:5px;
@@ -110,78 +66,75 @@ button:hover{ filter:brightness(1.1); }
   <label>Zoom: <span id="zoomVal">100%</span></label>
   <input type="range" id="zoom" min="0.5" max="5" step="0.1" value="1">
 
-<label>Posição Horizontal: <span id="xVal">0</span></label> <input type="range" id="posX" min="-800" max="800" value="0">
+<button onclick="baixar()">⬇ Baixar</button>
 
-<label>Posição Vertical: <span id="yVal">0</span></label> <input type="range" id="posY" min="-1200" max="1200" value="0">
-
-  <div class="row">
-    <button onclick="baixar()">⬇ Baixar</button>
-    <button class="secondary" onclick="limpar()">Limpar</button>
-  </div>
 </div>
 
-<div class="gallery" id="gallery">
-  <h3>Stories criados</h3>
-</div>
+<div class="gallery" id="gallery"></div>
 
 </div>
 
 <script>
-// ================== CONFIG CANVAS (HiDPI) ==================
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-// tamanho lógico (Story)
+// tamanho story
 const W = 1080;
 const H = 1920;
 
-// melhora qualidade em telas retina
+// qualidade alta
 const dpr = window.devicePixelRatio || 1;
 canvas.width = W * dpr;
 canvas.height = H * dpr;
-ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+ctx.setTransform(dpr,0,0,dpr,0,0);
 
-// ================== VARIÁVEIS ==================
 let imgUser = null;
 
 const molde = new Image();
-molde.src = "story.png"; // sua arte
+molde.src = "story.png";
 
 let scale = 1;
 let posX = 0;
 let posY = 0;
 
-// 🔥 área da foto (AJUSTE CONFORME SUA ARTE)
+// 🔥 ÁREA REAL DO SEU PRINT (AJUSTADA)
 const area = {
-  x: 140,
-  y: 400,
-  w: 800,
+  x: 180,
+  y: 420,
+  w: 720,
   h: 900
 };
 
-// ================== INIT ==================
-molde.onload = () => {
-  draw(); // já mostra a arte ao abrir
-};
+// desenha ao carregar
+molde.onload = draw;
 
-// ================== UPLOAD ==================
-document.getElementById("upload").addEventListener("change", e => {
+// upload
+document.getElementById("upload").addEventListener("change", e=>{
   const file = e.target.files[0];
-  if (!file) return;
+  if(!file) return;
 
   const reader = new FileReader();
-  reader.onload = (ev) => {
+  reader.onload = ev=>{
     imgUser = new Image();
-    imgUser.onload = () => {
-      // centralização inicial + escala que preenche a área
+    imgUser.onload = ()=>{
+      
+      // 🔥 AJUSTE PROFISSIONAL
+      // sempre cobre a área inteira (tipo Instagram)
       const scaleX = area.w / imgUser.width;
       const scaleY = area.h / imgUser.height;
+
       scale = Math.max(scaleX, scaleY);
 
-      posX = (area.w - imgUser.width * scale) / 2;
-      posY = (area.h - imgUser.height * scale) / 2;
+      const w = imgUser.width * scale;
+      const h = imgUser.height * scale;
 
-      syncSliders();
+      // centraliza perfeitamente
+      posX = (area.w - w) / 2;
+      posY = (area.h - h) / 2;
+
+      document.getElementById("zoom").value = scale;
+      document.getElementById("zoomVal").innerText = Math.round(scale*100)+"%";
+
       draw();
     };
     imgUser.src = ev.target.result;
@@ -189,125 +142,71 @@ document.getElementById("upload").addEventListener("change", e => {
   reader.readAsDataURL(file);
 });
 
-// ================== SLIDERS ==================
-const zoomSlider = document.getElementById("zoom");
-const posXSlider = document.getElementById("posX");
-const posYSlider = document.getElementById("posY");
-
-function syncSliders(){
-  zoomSlider.value = scale;
-  document.getElementById("zoomVal").innerText = Math.round(scale * 100) + "%";
-
-  posXSlider.value = Math.round(posX);
-  document.getElementById("xVal").innerText = Math.round(posX);
-
-  posYSlider.value = Math.round(posY);
-  document.getElementById("yVal").innerText = Math.round(posY);
-}
-
-zoomSlider.oninput = () => {
-  scale = parseFloat(zoomSlider.value);
-  document.getElementById("zoomVal").innerText = Math.round(scale * 100) + "%";
-  clamp();
+// zoom
+document.getElementById("zoom").oninput = e=>{
+  scale = parseFloat(e.target.value);
+  document.getElementById("zoomVal").innerText = Math.round(scale*100)+"%";
   draw();
 };
 
-posXSlider.oninput = () => {
-  posX = parseInt(posXSlider.value);
-  document.getElementById("xVal").innerText = posX;
-  clamp();
-  draw();
-};
+// touch (drag + pinch)
+let lastTouch=null,lastDist=null;
 
-posYSlider.oninput = () => {
-  posY = parseInt(posYSlider.value);
-  document.getElementById("yVal").innerText = posY;
-  clamp();
-  draw();
-};
-
-// ================== LIMITES (não vazar) ==================
-function clamp(){
-  if(!imgUser) return;
-
-  const w = imgUser.width * scale;
-  const h = imgUser.height * scale;
-
-  // limites para manter preenchido
-  const minX = area.w - w;
-  const minY = area.h - h;
-
-  posX = Math.min(0, Math.max(minX, posX));
-  posY = Math.min(0, Math.max(minY, posY));
-}
-
-// ================== TOUCH ==================
-let lastTouch = null;
-let lastDist = null;
-
-canvas.addEventListener("touchstart", e => {
-  if (e.touches.length === 1) lastTouch = e.touches[0];
-  if (e.touches.length === 2) lastDist = getDist(e.touches);
+canvas.addEventListener("touchstart",e=>{
+  if(e.touches.length===1) lastTouch=e.touches[0];
+  if(e.touches.length===2) lastDist=getDist(e.touches);
 });
 
-canvas.addEventListener("touchmove", e => {
+canvas.addEventListener("touchmove",e=>{
   e.preventDefault();
 
-  if (e.touches.length === 1 && lastTouch) {
-    const t = e.touches[0];
-    posX += t.clientX - lastTouch.clientX;
-    posY += t.clientY - lastTouch.clientY;
-    lastTouch = t;
-    clamp(); syncSliders(); draw();
+  if(e.touches.length===1){
+    const t=e.touches[0];
+    posX+=t.clientX-lastTouch.clientX;
+    posY+=t.clientY-lastTouch.clientY;
+    lastTouch=t;
+    draw();
   }
 
-  if (e.touches.length === 2) {
-    const nd = getDist(e.touches);
-    if (lastDist) {
-      const factor = nd / lastDist;
-      scale *= factor;
-      scale = Math.max(0.5, Math.min(scale, 5));
-    }
-    lastDist = nd;
-    clamp(); syncSliders(); draw();
+  if(e.touches.length===2){
+    const nd=getDist(e.touches);
+    scale*=nd/lastDist;
+    lastDist=nd;
+    draw();
   }
 });
 
-canvas.addEventListener("touchend", () => {
-  lastTouch = null;
-  lastDist = null;
+canvas.addEventListener("touchend",()=>{
+  lastTouch=null;
+  lastDist=null;
 });
 
 function getDist(t){
-  const dx = t[0].clientX - t[1].clientX;
-  const dy = t[0].clientY - t[1].clientY;
-  return Math.sqrt(dx*dx + dy*dy);
+  const dx=t[0].clientX-t[1].clientX;
+  const dy=t[0].clientY-t[1].clientY;
+  return Math.sqrt(dx*dx+dy*dy);
 }
 
-// ================== MOUSE ==================
-let dragging = false;
-
-canvas.addEventListener("mousedown", () => dragging = true);
-canvas.addEventListener("mouseup", () => dragging = false);
-canvas.addEventListener("mouseleave", () => dragging = false);
-
-canvas.addEventListener("mousemove", e => {
-  if (dragging) {
-    posX += e.movementX;
-    posY += e.movementY;
-    clamp(); syncSliders(); draw();
+// mouse
+let dragging=false;
+canvas.addEventListener("mousedown",()=>dragging=true);
+canvas.addEventListener("mouseup",()=>dragging=false);
+canvas.addEventListener("mousemove",e=>{
+  if(dragging){
+    posX+=e.movementX;
+    posY+=e.movementY;
+    draw();
   }
 });
 
-// ================== DRAW ==================
+// draw
 function draw(){
   ctx.clearRect(0,0,W,H);
 
-  // FOTO (embaixo, com máscara)
-  if (imgUser){
+  if(imgUser){
     ctx.save();
     ctx.beginPath();
-    ctx.rect(area.x, area.y, area.w, area.h);
+    ctx.rect(area.x,area.y,area.w,area.h);
     ctx.clip();
 
     const w = imgUser.width * scale;
@@ -324,32 +223,21 @@ function draw(){
     ctx.restore();
   }
 
-  // MOLDE (sempre por cima)
-  ctx.drawImage(molde, 0, 0, W, H);
+  ctx.drawImage(molde,0,0,W,H);
 }
 
-// ================== AÇÕES ==================
+// download
 function baixar(){
-  const url = canvas.toDataURL("image/png");
+  const url=canvas.toDataURL("image/png");
 
-  const a = document.createElement("a");
-  a.download = "story.png";
-  a.href = url;
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="story.png";
   a.click();
 
-  // galeria local
-  const img = document.createElement("img");
-  img.src = url;
+  const img=document.createElement("img");
+  img.src=url;
   document.getElementById("gallery").appendChild(img);
-}
-
-function limpar(){
-  imgUser = null;
-  scale = 1;
-  posX = 0;
-  posY = 0;
-  syncSliders();
-  draw();
 }
 </script>
 
