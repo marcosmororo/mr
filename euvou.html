@@ -6,7 +6,6 @@
 <title>Gerador de Story</title>
 
 <style>
-*{box-sizing:border-box}
 body{
   margin:0;
   font-family:Arial;
@@ -23,6 +22,7 @@ canvas{
   width:100%;
   border-radius:12px;
   margin-top:10px;
+  background:#000;
 }
 .controls{
   background:#1c1c1c;
@@ -50,7 +50,7 @@ button{
 
 <div class="container">
 
-<input type="file" id="upload">
+<input type="file" id="upload" accept="image/*">
 
 <canvas id="canvas"></canvas>
 
@@ -68,44 +68,60 @@ const ctx = canvas.getContext("2d");
 const W = 1080;
 const H = 1920;
 
-canvas.width = W;
-canvas.height = H;
+// 🔥 DPR correto
+const dpr = window.devicePixelRatio || 1;
+canvas.width = W * dpr;
+canvas.height = H * dpr;
+ctx.setTransform(dpr,0,0,dpr,0,0);
 
 let imgUser = null;
+let molde = new Image();
 
-const molde = new Image();
 molde.src = "euvou.png";
 
 let scale = 1;
 let imgX = 0;
 let imgY = 0;
 
-// 🔥 ÁREA CORRETA (BASEADA NA SUA IMAGEM)
+// 🔥 ÁREA REAL (ajustada pela sua imagem)
 const area = {
   x: 120,
-  y: 400,
+  y: 430,
   w: 840,
-  h: 840,
+  h: 820,
   r: 80
 };
 
-molde.onload = draw;
+// 🔥 GARANTE QUE DESENHA QUANDO A MOLDURA CARREGAR
+molde.onload = () => {
+  draw();
+};
 
-// upload
-upload.onchange = e=>{
+// 🔥 UPLOAD SEM BUG
+document.getElementById("upload").addEventListener("change", function(e){
   const file = e.target.files[0];
   if(!file) return;
 
   const reader = new FileReader();
-  reader.onload = ev=>{
-    imgUser = new Image();
-    imgUser.onload = ()=>{
+
+  reader.onload = function(ev){
+    const img = new Image();
+
+    img.onload = function(){
+      imgUser = img;
+
+      // centraliza automaticamente
       centralizar();
+
+      // 🔥 GARANTE render
+      draw();
     };
-    imgUser.src = ev.target.result;
+
+    img.src = ev.target.result;
   };
+
   reader.readAsDataURL(file);
-};
+});
 
 // 🔥 CENTRALIZAÇÃO CORRETA
 function centralizar(){
@@ -119,26 +135,24 @@ function centralizar(){
   const w = imgUser.width * scale;
   const h = imgUser.height * scale;
 
-  // 🔥 posição ABSOLUTA no canvas (não relativa)
   imgX = area.x + (area.w - w) / 2;
   imgY = area.y + (area.h - h) / 2;
-
-  draw();
 }
 
-// drag correto
-let dragging=false;
-let lastX=0,lastY=0;
+// 🔥 DRAG CORRETO
+let dragging = false;
+let lastX = 0;
+let lastY = 0;
 
-canvas.addEventListener("mousedown",e=>{
-  dragging=true;
-  lastX=e.offsetX;
-  lastY=e.offsetY;
+canvas.addEventListener("mousedown", e=>{
+  dragging = true;
+  lastX = e.offsetX;
+  lastY = e.offsetY;
 });
 
-canvas.addEventListener("mouseup",()=>dragging=false);
+canvas.addEventListener("mouseup", ()=> dragging = false);
 
-canvas.addEventListener("mousemove",e=>{
+canvas.addEventListener("mousemove", e=>{
   if(!dragging) return;
 
   const dx = e.offsetX - lastX;
@@ -153,7 +167,7 @@ canvas.addEventListener("mousemove",e=>{
   draw();
 });
 
-// borda arredondada
+// 🔥 BORDA ARREDONDADA
 function roundRect(x,y,w,h,r){
   ctx.beginPath();
   ctx.moveTo(x+r,y);
@@ -168,10 +182,11 @@ function roundRect(x,y,w,h,r){
   ctx.closePath();
 }
 
-// draw
+// 🔥 DRAW SEM ERRO
 function draw(){
   ctx.clearRect(0,0,W,H);
 
+  // FOTO
   if(imgUser){
     ctx.save();
 
@@ -189,18 +204,18 @@ function draw(){
     ctx.restore();
   }
 
+  // MOLDURA
   ctx.drawImage(molde,0,0,W,H);
 }
 
 // download
 function baixar(){
-  const a=document.createElement("a");
-  a.href=canvas.toDataURL("image/png");
-  a.download="story.png";
+  const a = document.createElement("a");
+  a.href = canvas.toDataURL("image/png");
+  a.download = "story.png";
   a.click();
 }
 </script>
 
 </body>
 </html>
-
