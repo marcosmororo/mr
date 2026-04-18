@@ -3,177 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador Atleta Confirmado</title>
+    <title>Gerador Atleta Confirmado - Santo Isidro Run</title>
     <style>
-        :root { --blue: #0066ff; --red: #ff0000; --bg: #f5f7fa; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 40px; }
+        /* ESTILOS GERAIS (Layout e Cores) */
+        :root { --blue: #0066ff; --red: #ff0000; --bg-main: #f5f7fa; --bg-card: #ffffff; --bg-preview: #f0f2f5; --text: #333; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-main); color: var(--text); display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px; }
         
-        .main-container { display: flex; gap: 40px; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 1000px; width: 100%; }
+        .main-container { display: flex; gap: 30px; background: var(--bg-card); padding: 30px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.08); max-width: 1000px; width: 100%; flex-wrap: wrap; }
         
-        /* Coluna Esquerda: Formulário */
-        .col-left { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-        .upload-area { border: 2px dashed #ccc; border-radius: 15px; padding: 40px; cursor: pointer; text-align: center; color: #666; transition: 0.3s; }
-        .upload-area:hover { border-color: var(--blue); background: #f0f5ff; }
+        /* COLUNA ESQUERDA (Formulário e Upload) */
+        .col-left { flex: 1; min-width: 320px; display: flex; flex-direction: column; gap: 15px; }
+        .form-group { margin-bottom: 5px; }
+        label { font-weight: 700; font-size: 13px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
         
-        label { font-weight: bold; font-size: 14px; color: #333; display: block; margin-bottom: 8px; }
-        input[type="text"] { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; background: #fafafa; box-sizing: border-box; }
+        /* Botão de Upload Grande (Estilo Tracejado) */
+        .upload-area { border: 2px dashed #ccd0d5; border-radius: 15px; padding: 35px 20px; cursor: pointer; text-align: center; color: #6c757d; transition: 0.2s ease-in-out; background: #fafafa; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .upload-area:hover { border-color: var(--blue); background: #f0f5ff; color: var(--blue); }
+        .upload-icon { font-size: 32px; font-weight: 300; }
+        .upload-text { font-size: 14px; font-weight: 500; }
         
-        .size-btn { background: var(--blue); color: white; border: none; padding: 12px 30px; border-radius: 10px; font-weight: bold; width: fit-content; }
+        input[type="text"] { width: 100%; padding: 12px 15px; border: 1px solid #e1e4e8; border-radius: 10px; background: #fafafa; font-size: 15px; color: var(--text); transition: border-color 0.2s; }
+        input[type="text"]:focus { border-color: var(--blue); outline: none; background: white; }
+        
+        .size-btn-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .size-btn { background: var(--blue); color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 700; font-size: 13px; text-transform: uppercase; cursor: default; }
+        
+        /* Inputs de Arquivo Escondidos */
+        input[type="file"] { display: none; }
 
-        /* Coluna Direita: Preview e Sliders */
-        .col-right { flex: 1; background: #f0f2f5; border-radius: 15px; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .preview-box { width: 100%; max-width: 320px; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); line-height: 0; }
-        canvas { width: 100%; height: auto; }
-
-        .sliders { width: 100%; margin-top: 20px; }
-        .slider-group { margin-bottom: 15px; }
-        .slider-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-bottom: 5px; }
+        /* COLUNA DIREITA (Preview e Sliders) */
+        .col-right { flex: 1; min-width: 320px; background: var(--bg-preview); border-radius: 15px; padding: 25px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         
-        input[type="range"] { 
-            width: 100%; height: 8px; border-radius: 5px; 
-            background: linear-gradient(to right, var(--blue) 50%, var(--red) 50%);
-            appearance: none; outline: none;
-        }
-        input[type="range"]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: white; border: 2px solid var(--blue); border-radius: 50%; cursor: pointer; }
+        /* Caixa de Preview Proporcional ao Story (9:16) */
+        .preview-box { width: 100%; max-width: 300px; aspect-ratio: 9 / 16; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.1); line-height: 0; position: relative; border: 1px solid #e1e4e8; }
+        canvas { width: 100%; height: 100%; display: block; }
+        .loading-moldura { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: #f0f2f5; color: #888; font-size: 14px; font-weight: 600; text-align: center; padding: 20px; }
 
-        .btn-download { 
-            background: var(--blue); color: white; border: none; padding: 15px; 
-            border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; 
-            margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
+        /* Sliders Estilizados (Estilo Print) */
+        .sliders-container { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+        .slider-group { width: 100%; }
+        .slider-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; color: #444; margin-bottom: 6px; }
+        .slider-value { color: var(--blue); font-weight: 800; }
+        
+        input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; border-radius: 5px; outline: none; background: linear-gradient(to right, var(--blue) 50%, #d1d8e0 50%); cursor: pointer; transition: background 0.2s; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #ffffff; border: 3px solid var(--blue); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.1); transition: transform 0.1s; }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+        
+        /* Botão de Download Grande (Estilo Print) */
+        .btn-download { background: var(--blue); color: white; border: none; padding: 16px 20px; border-radius: 12px; width: 100%; font-weight: 700; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: background 0.2s, transform 0.1s; }
+        .btn-download:hover { background: #005ce6; }
+        .btn-download:active { transform: scale(0.98); }
+        .download-icon { font-size: 20px; }
+
+        /* Ajustes para telas menores */
+        @media (max-width: 768px) { .main-container { padding: 20px; gap: 20px; } body { padding: 10px; } }
     </style>
 </head>
 <body>
 
 <div class="main-container">
     <div class="col-left">
-        <div class="upload-area" onclick="document.getElementById('photoInput').click()">
-            <div style="font-size: 40px;">⬆</div>
-            <p>Clique para fazer upload da sua foto</p>
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label>1. Primeiro, carregue sua moldura (euvou.png/jpg)</label>
+            <button class="size-btn" style="background: #28a745; width: 100%;" onclick="document.getElementById('molduraInput').click()">Carregar Moldura Base</button>
+            <input type="file" id="molduraInput" accept="image/*">
         </div>
-        <input type="file" id="photoInput" style="display:none" accept="image/*">
 
-        <div>
+        <div class="form-group">
+            <label>2. Agora, carregue a sua foto</label>
+            <div class="upload-area" id="uploadAreaAtleta" onclick="document.getElementById('atletaInput').click()">
+                <div class="upload-icon">↑</div>
+                <div class="upload-text">Clique ou arraste para fazer upload</div>
+                <div style="font-size: 12px; color: #888;">PNG ou JPG</div>
+            </div>
+            <input type="file" id="atletaInput" accept="image/*">
+        </div>
+
+        <div class="form-group">
             <label>Tamanho</label>
-            <button class="size-btn">Story</button>
+            <div class="size-btn-group">
+                <button class="size-btn">Story</button>
+            </div>
         </div>
 
-        <div>
-            <label>Nome</label>
-            <input type="text" id="inputName" placeholder="Digite seu nome" maxlength="25">
+        <div class="form-group">
+            <label for="inputName">Nome do Atleta</label>
+            <input type="text" id="inputName" placeholder="Ex: JOÃO SILVA" maxlength="25">
         </div>
 
-        <div>
-            <label>Equipe ou Cidade</label>
-            <input type="text" id="inputTeam" placeholder="Sua equipe ou cidade" maxlength="35">
+        <div class="form-group">
+            <label for="inputTeam">Equipe ou Cidade</label>
+            <input type="text" id="inputTeam" placeholder="Ex: EQUIPE CORRIDA / CIDADE" maxlength="35">
         </div>
     </div>
 
     <div class="col-right">
         <div class="preview-box">
             <canvas id="canvas"></canvas>
+            <div id="statusMoldura" class="loading-moldura">⚠️ Carregue a moldura 'euvou' primeiro no botão verde ao lado.</div>
         </div>
 
-        <div class="sliders">
+        <div class="sliders-container">
             <div class="slider-group">
-                <div class="slider-header"><span>Zoom: <span id="valZoom">100</span>%</span></div>
+                <div class="slider-header">Zoom: <span class="slider-value" id="valZoom">100%</span></div>
                 <input type="range" id="zoom" min="0.1" max="2" step="0.01" value="1">
             </div>
             <div class="slider-group">
-                <div class="slider-header"><span>Posição Horizontal: <span id="valX">0</span>%</span></div>
-                <input type="range" id="posX" min="-500" max="500" value="0">
+                <div class="slider-header">Posição Horizontal: <span class="slider-value" id="valX">0px</span></div>
+                <input type="range" id="posX" min="-540" max="540" value="0">
             </div>
             <div class="slider-group">
-                <div class="slider-header"><span>Posição Vertical: <span id="valY">0</span>%</span></div>
-                <input type="range" id="posY" min="-500" max="500" value="0">
+                <div class="slider-header">Posição Vertical: <span class="slider-value" id="valY">0px</span></div>
+                <input type="range" id="posY" min="-960" max="960" value="0">
             </div>
         </div>
 
         <button class="btn-download" id="downloadBtn">
-            <span>⬇</span> Baixar Imagem
+            <span class="download-icon">⬇</span> Baixar Imagem
         </button>
     </div>
 </div>
 
 <script>
+    // ELEMENTOS
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+    const statusMolduraText = document.getElementById('statusMoldura');
+    
+    // IMAGENS (OBJETOS JS)
     const imgMoldura = new Image();
-    const imgUser = new Image();
+    const imgAtleta = new Image();
 
-    // 1. CARREGUE SUA MOLDURA AQUI
-    imgMoldura.src = 'euvou.jpg'; 
+    // VARIÁVEIS DE ESTADO
+    let molduraCarregada = false;
+    let atletaCarregado = false;
 
-    // Configurações da área da foto (Baseado na imagem que você mandou)
-    const config = {
-        width: 1080, height: 1920,
-        photoX: 540, photoY: 750, photoR: 350, // Centro e raio do círculo/recorte
-        textNameY: 1550,
-        textTeamY: 1680
+    // CONFIGURAÇÕES DA IMAGEM FINAL (Story 9:16)
+    const STORY_W = 1080;
+    const STORY_H = 1920;
+
+    // Configuração do recorte circular (buraco para a foto)
+    const areaRecorte = {
+        centerX: STORY_W / 2,
+        centerY: 760, // Posição vertical do centro do círculo
+        raio: 360     // Tamanho do buraco
     };
 
-    imgMoldura.onload = () => {
-        canvas.width = config.width;
-        canvas.height = config.height;
-        render();
+    // Posição dos textos (em pixels na imagem final)
+    const areaTexto = {
+        nomeY: 1530, // Posição vertical do Nome
+        equipeY: 1670 // Posição vertical da Equipe
     };
 
-    // Listeners para atualizar o preview
-    document.getElementById('photoInput').onchange = e => {
+    // --- FUNÇÕES DE CARREGAMENTO DE ARQUIVOS ---
+
+    // 1. Ouvinte para carregar a MOLDURA
+    document.getElementById('molduraInput').addEventListener('change', (e) => {
+        carregarArquivo(e.target.files[0], imgMoldura, () => {
+            molduraCarregada = true;
+            statusMolduraText.style.display = 'none'; // Esconde o aviso de erro
+            render();
+        });
+    });
+
+    // 2. Ouvinte para carregar a FOTO DO ATLETA
+    document.getElementById('atletaInput').addEventListener('change', (e) => {
+        carregarArquivo(e.target.files[0], imgAtleta, () => {
+            atletaCarregado = true;
+            render();
+        });
+    });
+
+    // Função genérica para ler arquivo e atribuir ao objeto Image
+    function carregarArquivo(file, imageObj, callback) {
+        if (!file) return;
         const reader = new FileReader();
-        reader.onload = ev => { imgUser.src = ev.target.result; imgUser.onload = render; };
-        reader.readAsDataURL(e.target.files[0]);
-    };
-
-    const inputs = ['inputName', 'inputTeam', 'zoom', 'posX', 'posY'];
-    inputs.forEach(id => document.getElementById(id).addEventListener('input', render));
-
-    function render() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Atualiza labels numéricos dos sliders
-        document.getElementById('valZoom').innerText = Math.round(document.getElementById('zoom').value * 100);
-        document.getElementById('valX').innerText = document.getElementById('posX').value;
-        document.getElementById('valY').innerText = document.getElementById('posY').value;
-
-        // 1. Desenha Foto por baixo
-        if (imgUser.src) {
-            ctx.save();
-            // Criar o círculo/flor de recorte (ajuste as coordenadas se necessário)
-            ctx.beginPath();
-            ctx.arc(config.photoX, config.photoY, config.photoR, 0, Math.PI * 2);
-            ctx.clip();
-
-            const zoom = parseFloat(document.getElementById('zoom').value);
-            const px = parseInt(document.getElementById('posX').value);
-            const py = parseInt(document.getElementById('posY').value);
-
-            const w = imgUser.width * zoom;
-            const h = imgUser.height * zoom;
-            ctx.drawImage(imgUser, (config.photoX + px) - w/2, (config.photoY + py) - h/2, w, h);
-            ctx.restore();
-        }
-
-        // 2. Desenha a Moldura por cima
-        ctx.drawImage(imgMoldura, 0, 0, config.width, config.height);
-
-        // 3. Desenha os Textos (Nome e Equipe)
-        ctx.fillStyle = "white"; // Cor do texto
-        ctx.textAlign = "center";
-        
-        ctx.font = "bold 60px Montserrat, sans-serif";
-        ctx.fillText(document.getElementById('inputName').value.toUpperCase(), config.width/2, config.textNameY);
-        
-        ctx.font = "40px Montserrat, sans-serif";
-        ctx.fillText(document.getElementById('inputTeam').value.toUpperCase(), config.width/2, config.textTeamY);
+        reader.onload = (event) => {
+            imageObj.src = event.target.result;
+            imageObj.onload = callback; // Executa o callback quando o navegador carregar a imagem
+        };
+        reader.readAsDataURL(file);
     }
 
-    document.getElementById('downloadBtn').onclick = () => {
-        const link = document.createElement('a');
-        link.download = 'atleta_confirmado.png';
-        link.href = canvas.toDataURL('image/png', 1.0);
-        link.click();
-    };
+    // --- FUNÇÕES DE AJUSTE (SLIDERS E TEXTO) ---
+
+    // Ouvintes para todos os inputs que causam re-desenho
+    const inputsList = ['inputName', 'inputTeam', 'zoom', 'posX', 'posY'];
+    inputsList.forEach(id => {
+        document.getElementById(id).addEventListener('input', render);
+    });
+
+    // --- FUNÇÃO PRINCIPAL: RENDERIZAR O CANVAS ---
+
+    function render() {
+        // Define o tamanho real do canvas (1080x1920)
+        canvas.width = STORY_W;
+        canvas.height = STORY_H;
+
+        // Limpa o canvas antes de desenhar
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Atualiza os valores visuais dos sliders na interface
+        atualizarValuesSliders();
+
+        // Só desenha se a moldura estiver carregada
+        if (!molduraCarregada) return;
+
+        // --- CAMADA 1: FOTO DO ATLETA (POR BAIXO) ---
+        if (atletaCarregado) {
+            ctx.save(); // Salva o estado atual do canvas
+
+            // Criar o círculo de recorte para prender a foto dentro
+            ctx.beginPath();
+            ctx.arc(areaRecorte.centerX, areaRecorte.centerY, areaRecorte.raio, 0, Math.PI * 2);
+            ctx.clip(); // Tudo que for desenhado agora só aparecerá dentro desse círculo
+
+            // Pega os valores de ajuste dos sliders
+            const zoomVal = parseFloat(document.getElementById('zoom').value);
+            const posXVal = parseInt(document.getElementById('posX').value);
+            const posYVal = parseInt(document.getElementById('posY').value);
+
+            // Calcula o tamanho da foto com base no zoom
+            const finalW = imgAtleta.width * zoomVal;
+            const finalH = imgAtleta.height * zoomVal;
+
+            // Calcula o ponto de início para centralizar a foto ajustada
+            const drawX = (areaRecorte.centerX + posXVal) - (finalW / 2);
+            const drawY = (areaRecorte.centerY + posYVal) - (finalH / 2);
+
+            // Desenha a foto do atleta ajustada
+            ctx.drawImage(imgAtleta, drawX, drawY, finalW, finalH);
+
+            ctx.restore(); // Restaura o estado salvo, desativando o recorte circular
+        }
+
+        // --- CAMADA 2: MOLDURA 'EUVOU' (POR CIMA) ---
+        // Desenha a moldura cobrindo tudo, exceto onde a foto do atleta está presa pelo recorte
+        ctx.drawImage(imgMoldura, 0, 0, STORY_W, STORY_H);
+
+        // --- CAMADA 3: TEXTOS DINÂMICOS ---
+        
+        // Pega os valores digitados e força maiúsculas
+        const nomeAtleta = document.getElementById('inputName').value.toUpperCase();
+        const equipeAtleta = document.getElementById('inputTeam').value.toUpperCase();
+
+        ctx.fillStyle = "#ffffff"; // Cor do Texto
+        ctx.textAlign = "center"; // Centralizar texto horizontalmente
+        
+        // Desenhar NOME
+        ctx.font = "700 70px 'Segoe UI', sans-serif"; // Fonte pesada e grande
+        ctx.fillText(nomeAtleta, STORY_W / 2, areaTexto.nomeY);
+        
+        // Desenhar EQUIPE/CIDADE
+        ctx.font = "400 48px 'Segoe UI', sans-serif"; // Fonte mais leve e menor
+        ctx.fillText(equipeAtleta, STORY_W / 2, areaTexto.equipeY);
+    }
+
+    // --- FUNÇÕES AUXILIARES ---
+
+    function atualizarValuesSliders() {
+        const z = document.getElementById('zoom').value;
+        const x = document.getElementById('posX').value;
+        const y = document.getElementById('posY').value;
+
+        document.getElementById('valZoom').innerText = Math.round(z * 100) + '%';
+        document.getElementById('valX').innerText = x + 'px';
+        document.getElementById('valY').innerText = y + 'px';
+
+        // Atualiza o background colorido dos sliders (o degradê azul/cinza)
+        atualizarSliderGradient(document.getElementById('zoom'), (z - 0.1) / (2 - 0.1));
+        atualizarSliderGradient(document.getElementById('posX'), (parseInt(x) + 540) / 1080);
+        atualizarSliderGradient(document.getElementById('posY'), (parseInt(y) + 960) / 1920);
+    }
+
+    function atualizarSliderGradient(input, percentage) {
+        percentage *= 100;
+        input.style.background = `linear-gradient(to right, var(--blue) ${percentage}%, #d1d8e0 ${percentage}%)`;
+    }
+
+    // --- FUNÇÃO DE DOWNLOAD ---
+
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+        if (!molduraCarregada || !atletaCarregado) {
+            alert('Por favor, carregue a moldura e a sua foto antes de baixar.');
+            return;
+        }
+
+        // Gera um link temporário para download
+        const linkDownload = document.createElement('a');
+        linkDownload.download = 'minha_foto_isidro_run.png'; // Nome do arquivo final
+        
+        // Converte o canvas para imagem PNG em alta qualidade
+        linkDownload.href = canvas.toDataURL('image/png', 1.0);
+        
+        // Clica no link programaticamente
+        linkDownload.click();
+    });
+
+    // Inicia a função atualizarValuesSliders para o estado inicial
+    atualizarValuesSliders();
+
 </script>
 
 </body>
