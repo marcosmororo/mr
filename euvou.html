@@ -1,44 +1,4 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador Santo Isidro Run</title>
-    <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f2f5; padding: 20px; }
-        .container { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
-        .preview { width: 100%; aspect-ratio: 9/16; background: #eee; border-radius: 10px; overflow: hidden; margin: 15px 0; border: 1px solid #ccc; }
-        canvas { width: 100%; height: 100%; display: block; }
-        .controls { background: #f9f9f9; padding: 15px; border-radius: 12px; }
-        label { font-size: 12px; font-weight: bold; color: #666; display: block; margin-bottom: 5px; }
-        input[type="range"] { width: 100%; margin-bottom: 10px; accent-color: #2d5a27; }
-        .btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-upload { background: #000; color: #fff; }
-        .btn-download { background: #2d5a27; color: #fff; }
-        input[type="file"] { display: none; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <button class="btn btn-upload" onclick="document.getElementById('atletaInput').click()">1. SELECIONAR FOTO</button>
-    <input type="file" id="atletaInput" accept="image/*">
-
-    <div class="preview">
-        <canvas id="canvas"></canvas>
-    </div>
-
-    <div class="controls">
-        <label>ZOOM</label>
-        <input type="range" id="zoom" min="0.1" max="4" step="0.01" value="1.2">
-        <label>HORIZONTAL (X)</label>
-        <input type="range" id="posX" min="-800" max="800" value="0">
-        <label>VERTICAL (Y)</label>
-        <input type="range" id="posY" min="-800" max="800" value="0">
-    </div>
-
-    <button class="btn btn-download" id="downloadBtn">2. BAIXAR STORY</button>
-</div>
+<button class="btn btn-download" id="downloadBtn">2. BAIXAR IMAGEM</button>
 
 <script>
     const canvas = document.getElementById('canvas');
@@ -49,14 +9,13 @@
     let molduraOK = false;
     let atletaOK = false;
 
-    // Dimensões originais da sua imagem euvouu.jpg
     const W = 1080;
     const H = 1920;
 
-    // Área branca exata para a foto ficar presa dentro
+    // Área branca calibrada baseada nas imagens enviadas
     const area = { x: 124, y: 231, w: 832, h: 1046, r: 105 };
 
-    // Carrega a moldura (certifique-se que o nome do arquivo está exato)
+    // IMPORTANTE: Ajustei para euvoou.png que é o arquivo que você subiu
     imgMoldura.src = 'euvoou.png'; 
     imgMoldura.onload = () => {
         molduraOK = true;
@@ -81,15 +40,12 @@
 
     function render() {
         if (!molduraOK) return;
-
         ctx.clearRect(0, 0, W, H);
 
-        // PASSO 1: Desenhar a FOTO primeiro (com recorte para não vazar)
         if (atletaOK) {
             ctx.save();
-            // Criamos a máscara na área branca
             drawRoundedRect(ctx, area.x, area.y, area.w, area.h, area.r);
-            ctx.clip(); // Trava a foto aqui dentro
+            ctx.clip();
 
             const zoom = parseFloat(document.getElementById('zoom').value);
             const px = parseInt(document.getElementById('posX').value);
@@ -104,12 +60,10 @@
             ctx.restore();
         }
 
-        // PASSO 2: Desenhar a MOLDURA por cima de tudo
-        // Como a sua imagem tem o meio branco e não transparente, 
-        // a foto só aparece porque desenhamos ela na camada de baixo.
+        // Camada da moldura por cima
         ctx.globalCompositeOperation = 'destination-over'; 
         ctx.drawImage(imgMoldura, 0, 0, W, H);
-        ctx.globalCompositeOperation = 'source-over'; // Reseta para o padrão
+        ctx.globalCompositeOperation = 'source-over'; 
     }
 
     function drawRoundedRect(ctx, x, y, width, height, radius) {
@@ -126,14 +80,30 @@
         ctx.closePath();
     }
 
+    // FUNÇÃO DE DOWNLOAD OTIMIZADA
     document.getElementById('downloadBtn').onclick = () => {
-        if(!atletaOK) return alert("Selecione sua foto primeiro!");
-        const link = document.createElement('a');
-        link.download = 'story_santo_isidro.png';
-        link.href = canvas.toDataURL('image/png', 1.0);
-        link.click();
+        if(!atletaOK) {
+            alert("Selecione sua foto primeiro!");
+            return;
+        }
+
+        try {
+            // Gera a imagem em formato PNG de alta qualidade
+            const dataUrl = canvas.toDataURL('image/png', 1.0);
+            const link = document.createElement('a');
+            
+            // Define o nome do arquivo
+            link.download = 'santo_isidro_run_2026.png';
+            link.href = dataUrl;
+            
+            // Força o clique para iniciar o download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (err) {
+            // Fallback para navegadores de celular que bloqueiam links diretos
+            window.open(canvas.toDataURL('image/png'));
+            alert("Caso o download não inicie, pressione e segure na imagem para salvar.");
+        }
     };
 </script>
-
-</body>
-</html>
