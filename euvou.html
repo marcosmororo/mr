@@ -3,132 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Fotos - Santo Isidro Run</title>
+    <title>Gerador Atleta Confirmado</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0b2d0b; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .card { background: white; color: #333; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 450px; width: 100%; text-align: center; }
+        :root { --blue: #0066ff; --red: #ff0000; --bg: #f5f7fa; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 40px; }
         
-        #canvas-container { width: 100%; margin: 15px 0; border-radius: 10px; overflow: hidden; background: #eee; line-height: 0; }
+        .main-container { display: flex; gap: 40px; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 1000px; width: 100%; }
+        
+        /* Coluna Esquerda: Formulário */
+        .col-left { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+        .upload-area { border: 2px dashed #ccc; border-radius: 15px; padding: 40px; cursor: pointer; text-align: center; color: #666; transition: 0.3s; }
+        .upload-area:hover { border-color: var(--blue); background: #f0f5ff; }
+        
+        label { font-weight: bold; font-size: 14px; color: #333; display: block; margin-bottom: 8px; }
+        input[type="text"] { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; background: #fafafa; box-sizing: border-box; }
+        
+        .size-btn { background: var(--blue); color: white; border: none; padding: 12px 30px; border-radius: 10px; font-weight: bold; width: fit-content; }
+
+        /* Coluna Direita: Preview e Sliders */
+        .col-right { flex: 1; background: #f0f2f5; border-radius: 15px; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .preview-box { width: 100%; max-width: 320px; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); line-height: 0; }
         canvas { width: 100%; height: auto; }
 
-        .controls { display: grid; gap: 10px; background: #f9f9f9; padding: 15px; border-radius: 10px; text-align: left; }
-        label { font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; }
-        input[type="range"] { width: 100%; cursor: pointer; }
+        .sliders { width: 100%; margin-top: 20px; }
+        .slider-group { margin-bottom: 15px; }
+        .slider-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-bottom: 5px; }
         
-        .btn { display: block; width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; text-decoration: none; text-align: center; }
-        .btn-upload { background: #000; color: #fff; }
-        .btn-download { background: #e6ff00; color: #000; font-size: 18px; margin-top: 20px; }
-        input[type="file"] { display: none; }
+        input[type="range"] { 
+            width: 100%; height: 8px; border-radius: 5px; 
+            background: linear-gradient(to right, var(--blue) 50%, var(--red) 50%);
+            appearance: none; outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: white; border: 2px solid var(--blue); border-radius: 50%; cursor: pointer; }
+
+        .btn-download { 
+            background: var(--blue); color: white; border: none; padding: 15px; 
+            border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; 
+            margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2 style="margin:0">GERADOR DE MOLDURA</h2>
-    <p style="font-size: 14px; color: #666">Santo Isidro Run 2026</p>
-
-    <button class="btn btn-upload" onclick="document.getElementById('userPhoto').click()">CARREGAR MINHA FOTO</button>
-    <input type="file" id="userPhoto" accept="image/*">
-
-    <div id="canvas-container">
-        <canvas id="canvas"></canvas>
-    </div>
-
-    <div class="controls">
-        <div>
-            <label>Zoom</label>
-            <input type="range" id="zoom" min="0.1" max="3" step="0.01" value="1">
+<div class="main-container">
+    <div class="col-left">
+        <div class="upload-area" onclick="document.getElementById('photoInput').click()">
+            <div style="font-size: 40px;">⬆</div>
+            <p>Clique para fazer upload da sua foto</p>
         </div>
+        <input type="file" id="photoInput" style="display:none" accept="image/*">
+
         <div>
-            <label>Mover para os Lados</label>
-            <input type="range" id="posX" min="-600" max="600" step="1" value="0">
+            <label>Tamanho</label>
+            <button class="size-btn">Story</button>
         </div>
+
         <div>
-            <label>Mover para Cima/Baixo</label>
-            <input type="range" id="posY" min="-600" max="600" step="1" value="0">
+            <label>Nome</label>
+            <input type="text" id="inputName" placeholder="Digite seu nome" maxlength="25">
+        </div>
+
+        <div>
+            <label>Equipe ou Cidade</label>
+            <input type="text" id="inputTeam" placeholder="Sua equipe ou cidade" maxlength="35">
         </div>
     </div>
 
-    <button id="downloadBtn" class="btn btn-download">BAIXAR PARA O CELULAR</button>
+    <div class="col-right">
+        <div class="preview-box">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="sliders">
+            <div class="slider-group">
+                <div class="slider-header"><span>Zoom: <span id="valZoom">100</span>%</span></div>
+                <input type="range" id="zoom" min="0.1" max="2" step="0.01" value="1">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header"><span>Posição Horizontal: <span id="valX">0</span>%</span></div>
+                <input type="range" id="posX" min="-500" max="500" value="0">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header"><span>Posição Vertical: <span id="valY">0</span>%</span></div>
+                <input type="range" id="posY" min="-500" max="500" value="0">
+            </div>
+        </div>
+
+        <button class="btn-download" id="downloadBtn">
+            <span>⬇</span> Baixar Imagem
+        </button>
+    </div>
 </div>
 
 <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const imgMoldura = new Image();
-    const imgUsuario = new Image();
+    const imgUser = new Image();
 
-    // CONFIGURAÇÃO DA MOLDURA (Ajuste o nome do arquivo aqui se necessário)
+    // 1. CARREGUE SUA MOLDURA AQUI
     imgMoldura.src = 'euvou.jpg'; 
-    
-    // Coordenadas do quadrado interno (Ajustado para o Story)
-    const molduraArea = { x: 125, y: 220, w: 830, h: 830, raio: 80 };
 
-    imgMoldura.onload = () => {
-        canvas.width = 1080;  // Largura padrão Story
-        canvas.height = 1920; // Altura padrão Story
-        draw();
+    // Configurações da área da foto (Baseado na imagem que você mandou)
+    const config = {
+        width: 1080, height: 1920,
+        photoX: 540, photoY: 750, photoR: 350, // Centro e raio do círculo/recorte
+        textNameY: 1550,
+        textTeamY: 1680
     };
 
-    document.getElementById('userPhoto').onchange = function(e) {
+    imgMoldura.onload = () => {
+        canvas.width = config.width;
+        canvas.height = config.height;
+        render();
+    };
+
+    // Listeners para atualizar o preview
+    document.getElementById('photoInput').onchange = e => {
         const reader = new FileReader();
-        reader.onload = function(event) {
-            imgUsuario.onload = draw;
-            imgUsuario.src = event.target.result;
-        }
+        reader.onload = ev => { imgUser.src = ev.target.result; imgUser.onload = render; };
         reader.readAsDataURL(e.target.files[0]);
     };
 
-    // Atualiza o desenho ao mexer nos controles
-    document.querySelectorAll('input[type=range]').forEach(i => i.oninput = draw);
+    const inputs = ['inputName', 'inputTeam', 'zoom', 'posX', 'posY'];
+    inputs.forEach(id => document.getElementById(id).addEventListener('input', render));
 
-    function draw() {
+    function render() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 1. DESENHAR A FOTO DO USUÁRIO (POR BAIXO)
-        if (imgUsuario.src) {
+        // Atualiza labels numéricos dos sliders
+        document.getElementById('valZoom').innerText = Math.round(document.getElementById('zoom').value * 100);
+        document.getElementById('valX').innerText = document.getElementById('posX').value;
+        document.getElementById('valY').innerText = document.getElementById('posY').value;
+
+        // 1. Desenha Foto por baixo
+        if (imgUser.src) {
             ctx.save();
-            
-            // Cria o recorte arredondado para a foto não vazar da moldura
-            roundRect(ctx, molduraArea.x, molduraArea.y, molduraArea.w, molduraArea.h, molduraArea.raio);
+            // Criar o círculo/flor de recorte (ajuste as coordenadas se necessário)
+            ctx.beginPath();
+            ctx.arc(config.photoX, config.photoY, config.photoR, 0, Math.PI * 2);
             ctx.clip();
 
             const zoom = parseFloat(document.getElementById('zoom').value);
             const px = parseInt(document.getElementById('posX').value);
             const py = parseInt(document.getElementById('posY').value);
 
-            // Centraliza no quadrado
-            const cx = molduraArea.x + (molduraArea.w / 2) + px;
-            const cy = molduraArea.y + (molduraArea.h / 2) + py;
-            
-            const w = imgUsuario.width * zoom;
-            const h = imgUsuario.height * zoom;
-
-            ctx.drawImage(imgUsuario, cx - w/2, cy - h/2, w, h);
+            const w = imgUser.width * zoom;
+            const h = imgUser.height * zoom;
+            ctx.drawImage(imgUser, (config.photoX + px) - w/2, (config.photoY + py) - h/2, w, h);
             ctx.restore();
         }
 
-        // 2. DESENHAR A MOLDURA (POR CIMA)
-        ctx.drawImage(imgMoldura, 0, 0, 1080, 1920);
+        // 2. Desenha a Moldura por cima
+        ctx.drawImage(imgMoldura, 0, 0, config.width, config.height);
+
+        // 3. Desenha os Textos (Nome e Equipe)
+        ctx.fillStyle = "white"; // Cor do texto
+        ctx.textAlign = "center";
+        
+        ctx.font = "bold 60px Montserrat, sans-serif";
+        ctx.fillText(document.getElementById('inputName').value.toUpperCase(), config.width/2, config.textNameY);
+        
+        ctx.font = "40px Montserrat, sans-serif";
+        ctx.fillText(document.getElementById('inputTeam').value.toUpperCase(), config.width/2, config.textTeamY);
     }
 
-    function roundRect(ctx, x, y, width, height, radius) {
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.lineTo(x + width - radius, y);
-        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-        ctx.lineTo(x + width, y + height - radius);
-        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-        ctx.lineTo(x + radius, y + height);
-        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-        ctx.lineTo(x, y + radius);
-        ctx.quadraticCurveTo(x, y, x + radius, y);
-        ctx.closePath();
-    }
-
-    document.getElementById('downloadBtn').onclick = function() {
+    document.getElementById('downloadBtn').onclick = () => {
         const link = document.createElement('a');
-        link.download = 'meu_story_isidro_run.png';
+        link.download = 'atleta_confirmado.png';
         link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
     };
