@@ -23,7 +23,6 @@ canvas{
   width:100%;
   border-radius:12px;
   margin-top:10px;
-  touch-action:none;
 }
 .controls{
   background:#1c1c1c;
@@ -31,7 +30,6 @@ canvas{
   border-radius:12px;
   margin-top:10px;
 }
-input[type="range"]{width:100%}
 button{
   margin:5px;
   padding:12px;
@@ -41,12 +39,6 @@ button{
   color:#fff;
   font-weight:bold;
   cursor:pointer;
-}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:5px;
-  margin-top:10px;
 }
 </style>
 
@@ -58,31 +50,13 @@ button{
 
 <div class="container">
 
-<input type="file" id="upload" accept="image/*">
+<input type="file" id="upload">
 
 <canvas id="canvas"></canvas>
 
 <div class="controls">
-
-<label>Zoom: <span id="zoomVal">100%</span></label>
-<input type="range" id="zoom" min="0.5" max="5" step="0.1" value="1">
-
-<div class="grid">
-  <div></div>
-  <button onclick="mover(0,-20)">↑</button>
-  <div></div>
-
-  <button onclick="mover(-20,0)">←</button>
-  <button onclick="centralizar()">⦿</button>
-  <button onclick="mover(20,0)">→</button>
-
-  <div></div>
-  <button onclick="mover(0,20)">↓</button>
-  <div></div>
-</div>
-
+<button onclick="centralizar()">Centralizar</button>
 <button onclick="baixar()">⬇ Baixar</button>
-
 </div>
 
 </div>
@@ -94,10 +68,8 @@ const ctx = canvas.getContext("2d");
 const W = 1080;
 const H = 1920;
 
-const dpr = window.devicePixelRatio || 1;
-canvas.width = W * dpr;
-canvas.height = H * dpr;
-ctx.setTransform(dpr,0,0,dpr,0,0);
+canvas.width = W;
+canvas.height = H;
 
 let imgUser = null;
 
@@ -105,16 +77,16 @@ const molde = new Image();
 molde.src = "euvou.png";
 
 let scale = 1;
-let posX = 0;
-let posY = 0;
+let imgX = 0;
+let imgY = 0;
 
-// ✅ ÁREA CORRIGIDA (ALINHADA COM O QUADRO DA SUA IMAGEM)
+// 🔥 ÁREA CORRETA (BASEADA NA SUA IMAGEM)
 const area = {
-  x: 140,
-  y: 500,
-  w: 800,
-  h: 760,
-  radius: 90
+  x: 120,
+  y: 400,
+  w: 840,
+  h: 840,
+  r: 80
 };
 
 molde.onload = draw;
@@ -135,41 +107,26 @@ upload.onchange = e=>{
   reader.readAsDataURL(file);
 };
 
-// centralizar automático
+// 🔥 CENTRALIZAÇÃO CORRETA
 function centralizar(){
   if(!imgUser) return;
 
   const scaleX = area.w / imgUser.width;
   const scaleY = area.h / imgUser.height;
+
   scale = Math.max(scaleX, scaleY);
 
   const w = imgUser.width * scale;
   const h = imgUser.height * scale;
 
-  posX = (area.w - w) / 2;
-  posY = (area.h - h) / 2;
-
-  zoom.value = scale;
-  zoomVal.innerText = Math.round(scale*100)+"%";
+  // 🔥 posição ABSOLUTA no canvas (não relativa)
+  imgX = area.x + (area.w - w) / 2;
+  imgY = area.y + (area.h - h) / 2;
 
   draw();
 }
 
-// zoom
-zoom.oninput = e=>{
-  scale = parseFloat(e.target.value);
-  zoomVal.innerText = Math.round(scale*100)+"%";
-  draw();
-};
-
-// botões
-function mover(x,y){
-  posX += x;
-  posY += y;
-  draw();
-}
-
-// drag mouse
+// drag correto
 let dragging=false;
 let lastX=0,lastY=0;
 
@@ -187,32 +144,11 @@ canvas.addEventListener("mousemove",e=>{
   const dx = e.offsetX - lastX;
   const dy = e.offsetY - lastY;
 
-  posX += dx;
-  posY += dy;
+  imgX += dx;
+  imgY += dy;
 
   lastX = e.offsetX;
   lastY = e.offsetY;
-
-  draw();
-});
-
-// touch
-canvas.addEventListener("touchstart",e=>{
-  lastX=e.touches[0].clientX;
-  lastY=e.touches[0].clientY;
-});
-
-canvas.addEventListener("touchmove",e=>{
-  e.preventDefault();
-
-  const dx = e.touches[0].clientX - lastX;
-  const dy = e.touches[0].clientY - lastY;
-
-  posX += dx;
-  posY += dy;
-
-  lastX = e.touches[0].clientX;
-  lastY = e.touches[0].clientY;
 
   draw();
 });
@@ -236,37 +172,32 @@ function roundRect(x,y,w,h,r){
 function draw(){
   ctx.clearRect(0,0,W,H);
 
-  // FOTO (dentro da área)
   if(imgUser){
     ctx.save();
 
-    roundRect(area.x, area.y, area.w, area.h, area.radius);
+    roundRect(area.x,area.y,area.w,area.h,area.r);
     ctx.clip();
-
-    const w = imgUser.width * scale;
-    const h = imgUser.height * scale;
 
     ctx.drawImage(
       imgUser,
-      area.x + posX,
-      area.y + posY,
-      w,
-      h
+      imgX,
+      imgY,
+      imgUser.width * scale,
+      imgUser.height * scale
     );
 
     ctx.restore();
   }
 
-  // MOLDURA POR CIMA
   ctx.drawImage(molde,0,0,W,H);
 }
 
 // download
 function baixar(){
-  const link=document.createElement("a");
-  link.download="story.png";
-  link.href=canvas.toDataURL("image/png");
-  link.click();
+  const a=document.createElement("a");
+  a.href=canvas.toDataURL("image/png");
+  a.download="story.png";
+  a.click();
 }
 </script>
 
