@@ -1,5 +1,5 @@
+```html
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -42,6 +42,7 @@ button{
   background:#3b82f6;
   color:#fff;
   font-weight:bold;
+  cursor:pointer;
 }
 .gallery img{
   width:80px;
@@ -66,8 +67,7 @@ button{
   <label>Zoom: <span id="zoomVal">100%</span></label>
   <input type="range" id="zoom" min="0.5" max="5" step="0.1" value="1">
 
-<button onclick="baixar()">⬇ Baixar</button>
-
+  <button onclick="baixar()">⬇ Baixar</button>
 </div>
 
 <div class="gallery" id="gallery"></div>
@@ -91,13 +91,13 @@ ctx.setTransform(dpr,0,0,dpr,0,0);
 let imgUser = null;
 
 const molde = new Image();
-molde.src = "story.png";
+molde.src = "euvou.png"; // 🔥 moldura fixa
 
 let scale = 1;
 let posX = 0;
 let posY = 0;
 
-// 🔥 ÁREA REAL DO SEU PRINT (AJUSTADA)
+// área onde a imagem será posicionada
 const area = {
   x: 180,
   y: 420,
@@ -117,18 +117,16 @@ document.getElementById("upload").addEventListener("change", e=>{
   reader.onload = ev=>{
     imgUser = new Image();
     imgUser.onload = ()=>{
-      
-      // 🔥 AJUSTE PROFISSIONAL
-      // sempre cobre a área inteira (tipo Instagram)
+
+      // escala inicial para caber bem
       const scaleX = area.w / imgUser.width;
       const scaleY = area.h / imgUser.height;
-
       scale = Math.max(scaleX, scaleY);
 
       const w = imgUser.width * scale;
       const h = imgUser.height * scale;
 
-      // centraliza perfeitamente
+      // centraliza
       posX = (area.w - w) / 2;
       posY = (area.h - h) / 2;
 
@@ -203,12 +201,11 @@ canvas.addEventListener("mousemove",e=>{
 function draw(){
   ctx.clearRect(0,0,W,H);
 
-  if(imgUser){
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(area.x,area.y,area.w,area.h);
-    ctx.clip();
+  // moldura fixa primeiro
+  ctx.drawImage(molde,0,0,W,H);
 
+  // imagem do usuário por cima
+  if(imgUser){
     const w = imgUser.width * scale;
     const h = imgUser.height * scale;
 
@@ -219,11 +216,7 @@ function draw(){
       w,
       h
     );
-
-    ctx.restore();
   }
-
-  ctx.drawImage(molde,0,0,W,H);
 }
 
 // download
@@ -243,3 +236,23 @@ function baixar(){
 
 </body>
 </html>
+```
+
+---
+
+## 🚀 Agora é só fazer isso:
+
+1. Salvar como `index.html`
+2. Colocar a imagem `euvou.png` na mesma pasta
+3. Abrir no navegador
+
+---
+
+Se quiser, posso dar um upgrade agora:
+
+* 🔥 colocar nome automático do corredor
+* 🔥 adicionar botão “centralizar”
+* 🔥 travar imagem dentro da área (não sair pra fora)
+* 🔥 versão pronta pra celular estilo app
+
+Só falar 👍
