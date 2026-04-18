@@ -5,97 +5,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador Santo Isidro Run</title>
     <style>
-        :root { --blue: #007bff; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .editor-container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 850px; width: 100%; display: flex; gap: 30px; flex-wrap: wrap; }
+        :root { --primary: #2d5a27; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
+        .main-container { display: flex; gap: 30px; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 900px; width: 100%; flex-wrap: wrap; }
         
-        .upload-section { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 20px; }
-        .preview-section { flex: 1; min-width: 300px; background: #fafafa; padding: 20px; border-radius: 15px; display: flex; flex-direction: column; align-items: center; }
+        /* Coluna de Controles */
+        .col-left { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 20px; }
+        .upload-btn { background: #000; color: white; border: none; padding: 20px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; text-align: center; }
+        
+        .sliders { background: #f9f9f9; padding: 20px; border-radius: 12px; border: 1px solid #eee; }
+        .slider-group { margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: bold; display: block; margin-bottom: 8px; color: #666; text-transform: uppercase; }
+        input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--primary); }
 
-        .btn-upload { background: #fff; border: 2px dashed #ccc; padding: 40px 20px; border-radius: 15px; cursor: pointer; text-align: center; color: #666; transition: 0.3s; }
-        .btn-upload:hover { border-color: var(--blue); color: var(--blue); background: #f0f7ff; }
+        /* Coluna de Preview */
+        .col-right { flex: 1; min-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .preview-box { width: 100%; max-width: 300px; aspect-ratio: 9/16; background: #ddd; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.15); border: 1px solid #ccc; }
+        canvas { width: 100%; height: 100%; display: block; }
 
-        .canvas-wrapper { width: 100%; max-width: 300px; aspect-ratio: 9/16; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        canvas { width: 100%; height: auto; }
-
-        .controls { width: 100%; margin-top: 20px; }
-        .control-group { margin-bottom: 15px; }
-        label { font-size: 12px; font-weight: bold; color: #444; display: block; margin-bottom: 8px; }
-        input[type="range"] { width: 100%; height: 8px; border-radius: 5px; background: #ddd; appearance: none; outline: none; }
-        input[type="range"]::-webkit-slider-thumb { appearance: none; width: 20px; height: 20px; background: var(--blue); border-radius: 50%; cursor: pointer; }
-
-        .btn-download { background: var(--blue); color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 15px; }
+        .btn-download { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 12px; width: 100%; font-weight: bold; font-size: 18px; cursor: pointer; }
         input[type="file"] { display: none; }
     </style>
 </head>
 <body>
 
-<div class="editor-container">
-    <div class="upload-section">
-        <h2>Passo 1</h2>
-        <div class="btn-upload" onclick="document.getElementById('userPhoto').click()">
-            <span style="font-size: 30px;">+</span><br>Clique para subir sua foto
-        </div>
-        <input type="file" id="userPhoto" accept="image/*">
+<div class="main-container">
+    <div class="col-left">
+        <h2 style="margin:0; color:var(--primary)">SANTO ISIDRO RUN</h2>
+        <p style="color:#888; margin-top:-5px; font-size: 14px;">Ajuste sua foto na área branca</p>
         
-        <p style="font-size: 13px; color: #888;">Certifique-se que o arquivo <b>euvouu.jpg</b> está na mesma pasta deste código.</p>
-    </div>
+        <button class="upload-btn" onclick="document.getElementById('atletaInput').click()">
+            SUBIR MINHA FOTO
+        </button>
+        <input type="file" id="atletaInput" accept="image/*">
 
-    <div class="preview-section">
-        <div class="canvas-wrapper">
-            <canvas id="canvas"></canvas>
-        </div>
-
-        <div class="controls">
-            <div class="control-group">
-                <label>ZOOM</label>
+        <div class="sliders">
+            <div class="slider-group">
+                <label>Zoom</label>
                 <input type="range" id="zoom" min="0.1" max="3" step="0.01" value="1">
             </div>
-            <div class="control-group">
-                <label>POSIÇÃO HORIZONTAL</label>
-                <input type="range" id="posX" min="-600" max="600" value="0">
+            <div class="slider-group">
+                <label>Posição Horizontal</label>
+                <input type="range" id="posX" min="-700" max="700" value="0">
             </div>
-            <div class="control-group">
-                <label>POSIÇÃO VERTICAL</label>
-                <input type="range" id="posY" min="-600" max="600" value="0">
+            <div class="slider-group">
+                <label>Posição Vertical</label>
+                <input type="range" id="posY" min="-900" max="900" value="0">
             </div>
         </div>
+    </div>
 
-        <button id="download" class="btn-download">BAIXAR IMAGEM</button>
+    <div class="col-right">
+        <div class="preview-box">
+            <canvas id="canvas"></canvas>
+        </div>
+        <button class="btn-download" id="downloadBtn">BAIXAR MEU STORY</button>
     </div>
 </div>
 
 <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+    
     const imgMoldura = new Image();
-    const imgUser = new Image();
+    const imgAtleta = new Image();
+    
+    let molduraOK = false;
+    let atletaOK = false;
 
-    // Configurações da Moldura
-    imgMoldura.src = 'euvouu.png'; // Nome exato do arquivo
+    // Proporção Story 1080x1920
     const W = 1080;
     const H = 1920;
 
-    // Definição exata da área branca (Buraco da foto)
-    const areaBranca = {
-        x: 128,    // Início X
-        y: 232,    // Início Y 
-        w: 824,    // Largura
-        h: 1045,   // Altura (Ajustado para o formato da sua imagem euvouu.jpg)
-        r: 110     // Arredondamento dos cantos
+    // ÁREA BRANCA (Ajustada conforme a imagem euvouu.jpg)
+    const area = {
+        x: 125,     // Início horizontal do quadrado
+        y: 232,     // Início vertical do quadrado
+        w: 830,     // Largura
+        h: 1040,    // Altura aproximada do branco
+        r: 115      // Arredondamento dos cantos
     };
 
+    // Carregamento automático da moldura
+    imgMoldura.src = 'euvouu.jpg'; 
     imgMoldura.onload = () => {
-        canvas.width = W;
-        canvas.height = H;
+        molduraOK = true;
         render();
     };
 
-    document.getElementById('userPhoto').onchange = (e) => {
+    document.getElementById('atletaInput').onchange = e => {
         const reader = new FileReader();
-        reader.onload = (ev) => {
-            imgUser.onload = render;
-            imgUser.src = ev.target.result;
+        reader.onload = ev => {
+            imgAtleta.onload = () => {
+                atletaOK = true;
+                render();
+            };
+            imgAtleta.src = ev.target.result;
         };
         reader.readAsDataURL(e.target.files[0]);
     };
@@ -103,34 +108,39 @@
     document.querySelectorAll('input[type=range]').forEach(i => i.oninput = render);
 
     function render() {
+        canvas.width = W;
+        canvas.height = H;
         ctx.clearRect(0, 0, W, H);
 
-        // 1. Desenha a foto do usuário (por baixo, recortada na área branca)
-        if (imgUser.src) {
+        // 1. DESENHA FOTO DO ATLETA (POR BAIXO)
+        if (atletaOK) {
             ctx.save();
-            drawRoundedRect(ctx, areaBranca.x, areaBranca.y, areaBranca.w, areaBranca.h, areaBranca.r);
+            // Cria o recorte exatamente na área branca
+            roundRect(ctx, area.x, area.y, area.w, area.h, area.r);
             ctx.clip();
 
             const zoom = parseFloat(document.getElementById('zoom').value);
             const px = parseInt(document.getElementById('posX').value);
             const py = parseInt(document.getElementById('posY').value);
 
-            const fw = imgUser.width * zoom;
-            const fh = imgUser.height * zoom;
-            
-            // Centraliza dentro da área branca
-            const cx = areaBranca.x + (areaBranca.w / 2) + px;
-            const cy = areaBranca.y + (areaBranca.h / 2) + py;
+            const fw = imgAtleta.width * zoom;
+            const fh = imgAtleta.height * zoom;
 
-            ctx.drawImage(imgUser, cx - fw/2, cy - fh/2, fw, fh);
+            // Centraliza no buraco branco
+            const cx = area.x + (area.w / 2) + px;
+            const cy = area.y + (area.h / 2) + py;
+
+            ctx.drawImage(imgAtleta, cx - fw/2, cy - fh/2, fw, fh);
             ctx.restore();
         }
 
-        // 2. Desenha a moldura por cima (As partes verdes e textos)
-        ctx.drawImage(imgMoldura, 0, 0, W, H);
+        // 2. DESENHA MOLDURA (POR CIMA)
+        if (molduraOK) {
+            ctx.drawImage(imgMoldura, 0, 0, W, H);
+        }
     }
 
-    function drawRoundedRect(ctx, x, y, width, height, radius) {
+    function roundRect(ctx, x, y, width, height, radius) {
         ctx.beginPath();
         ctx.moveTo(x + radius, y);
         ctx.lineTo(x + width - radius, y);
@@ -144,9 +154,10 @@
         ctx.closePath();
     }
 
-    document.getElementById('download').onclick = () => {
+    document.getElementById('downloadBtn').onclick = () => {
+        if(!atletaOK) return alert("Suba sua foto primeiro!");
         const link = document.createElement('a');
-        link.download = 'confirmacao_atleta.png';
+        link.download = 'meu_story_confirmado.png';
         link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
     };
