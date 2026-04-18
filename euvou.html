@@ -108,13 +108,13 @@ let scale = 1;
 let posX = 0;
 let posY = 0;
 
-// 🔥 AJUSTE FINO DA ÁREA (essa é a chave!)
+// ✅ ÁREA CORRIGIDA (ALINHADA COM O QUADRO DA SUA IMAGEM)
 const area = {
   x: 140,
-  y: 360,
+  y: 500,
   w: 800,
-  h: 860,
-  radius: 60
+  h: 760,
+  radius: 90
 };
 
 molde.onload = draw;
@@ -169,7 +169,7 @@ function mover(x,y){
   draw();
 }
 
-// drag CORRIGIDO (com escala)
+// drag mouse
 let dragging=false;
 let lastX=0,lastY=0;
 
@@ -184,8 +184,8 @@ canvas.addEventListener("mouseup",()=>dragging=false);
 canvas.addEventListener("mousemove",e=>{
   if(!dragging) return;
 
-  const dx = (e.offsetX - lastX);
-  const dy = (e.offsetY - lastY);
+  const dx = e.offsetX - lastX;
+  const dy = e.offsetY - lastY;
 
   posX += dx;
   posY += dy;
@@ -236,10 +236,11 @@ function roundRect(x,y,w,h,r){
 function draw(){
   ctx.clearRect(0,0,W,H);
 
+  // FOTO (dentro da área)
   if(imgUser){
     ctx.save();
 
-    roundRect(area.x,area.y,area.w,area.h,area.radius);
+    roundRect(area.x, area.y, area.w, area.h, area.radius);
     ctx.clip();
 
     const w = imgUser.width * scale;
@@ -256,6 +257,7 @@ function draw(){
     ctx.restore();
   }
 
+  // MOLDURA POR CIMA
   ctx.drawImage(molde,0,0,W,H);
 }
 
