@@ -44,11 +44,6 @@ button{
   font-weight:bold;
   cursor:pointer;
 }
-.gallery img{
-  width:80px;
-  margin:5px;
-  border-radius:8px;
-}
 </style>
 
 </head>
@@ -69,8 +64,6 @@ button{
 
   <button onclick="baixar()">⬇ Baixar</button>
 </div>
-
-<div class="gallery" id="gallery"></div>
 
 </div>
 
@@ -97,12 +90,13 @@ let scale = 1;
 let posX = 0;
 let posY = 0;
 
-// área transparente da moldura
+// 🔥 ÁREA EXATA AJUSTADA DA SUA IMAGEM
 const area = {
-  x: 180,
-  y: 420,
-  w: 720,
-  h: 900
+  x: 120,
+  y: 360,
+  w: 840,
+  h: 880,
+  radius: 60
 };
 
 molde.onload = draw;
@@ -144,6 +138,18 @@ document.getElementById("zoom").oninput = e=>{
   draw();
 };
 
+// drag mouse
+let dragging=false;
+canvas.addEventListener("mousedown",()=>dragging=true);
+canvas.addEventListener("mouseup",()=>dragging=false);
+canvas.addEventListener("mousemove",e=>{
+  if(dragging){
+    posX+=e.movementX;
+    posY+=e.movementY;
+    draw();
+  }
+});
+
 // touch
 let lastTouch=null,lastDist=null;
 
@@ -171,39 +177,36 @@ canvas.addEventListener("touchmove",e=>{
   }
 });
 
-canvas.addEventListener("touchend",()=>{
-  lastTouch=null;
-  lastDist=null;
-});
-
 function getDist(t){
   const dx=t[0].clientX-t[1].clientX;
   const dy=t[0].clientY-t[1].clientY;
   return Math.sqrt(dx*dx+dy*dy);
 }
 
-// mouse
-let dragging=false;
-canvas.addEventListener("mousedown",()=>dragging=true);
-canvas.addEventListener("mouseup",()=>dragging=false);
-canvas.addEventListener("mousemove",e=>{
-  if(dragging){
-    posX+=e.movementX;
-    posY+=e.movementY;
-    draw();
-  }
-});
+// 🔥 função de retângulo arredondado
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
 
-// draw correto
+// draw
 function draw(){
   ctx.clearRect(0,0,W,H);
 
-  // 1️⃣ imagem do usuário RECORTADA
+  // FOTO (RECORTADA COM BORDA)
   if(imgUser){
     ctx.save();
 
-    ctx.beginPath();
-    ctx.rect(area.x,area.y,area.w,area.h);
+    roundRect(ctx, area.x, area.y, area.w, area.h, area.radius);
     ctx.clip();
 
     const w = imgUser.width * scale;
@@ -220,7 +223,7 @@ function draw(){
     ctx.restore();
   }
 
-  // 2️⃣ moldura por cima (com transparência)
+  // MOLDURA POR CIMA
   ctx.drawImage(molde,0,0,W,H);
 }
 
@@ -232,10 +235,6 @@ function baixar(){
   a.href=url;
   a.download="story.png";
   a.click();
-
-  const img=document.createElement("img");
-  img.src=url;
-  document.getElementById("gallery").appendChild(img);
 }
 </script>
 
