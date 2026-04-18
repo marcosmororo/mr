@@ -91,13 +91,13 @@ ctx.setTransform(dpr,0,0,dpr,0,0);
 let imgUser = null;
 
 const molde = new Image();
-molde.src = "euvou.png"; // 🔥 moldura fixa
+molde.src = "euvou.png";
 
 let scale = 1;
 let posX = 0;
 let posY = 0;
 
-// área onde a imagem será posicionada
+// área transparente da moldura
 const area = {
   x: 180,
   y: 420,
@@ -105,7 +105,6 @@ const area = {
   h: 900
 };
 
-// desenha ao carregar
 molde.onload = draw;
 
 // upload
@@ -118,7 +117,6 @@ document.getElementById("upload").addEventListener("change", e=>{
     imgUser = new Image();
     imgUser.onload = ()=>{
 
-      // escala inicial para caber bem
       const scaleX = area.w / imgUser.width;
       const scaleY = area.h / imgUser.height;
       scale = Math.max(scaleX, scaleY);
@@ -126,7 +124,6 @@ document.getElementById("upload").addEventListener("change", e=>{
       const w = imgUser.width * scale;
       const h = imgUser.height * scale;
 
-      // centraliza
       posX = (area.w - w) / 2;
       posY = (area.h - h) / 2;
 
@@ -147,7 +144,7 @@ document.getElementById("zoom").oninput = e=>{
   draw();
 };
 
-// touch (drag + pinch)
+// touch
 let lastTouch=null,lastDist=null;
 
 canvas.addEventListener("touchstart",e=>{
@@ -197,15 +194,18 @@ canvas.addEventListener("mousemove",e=>{
   }
 });
 
-// draw
+// draw correto
 function draw(){
   ctx.clearRect(0,0,W,H);
 
-  // moldura fixa primeiro
-  ctx.drawImage(molde,0,0,W,H);
-
-  // imagem do usuário por cima
+  // 1️⃣ imagem do usuário RECORTADA
   if(imgUser){
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.rect(area.x,area.y,area.w,area.h);
+    ctx.clip();
+
     const w = imgUser.width * scale;
     const h = imgUser.height * scale;
 
@@ -216,7 +216,12 @@ function draw(){
       w,
       h
     );
+
+    ctx.restore();
   }
+
+  // 2️⃣ moldura por cima (com transparência)
+  ctx.drawImage(molde,0,0,W,H);
 }
 
 // download
@@ -237,22 +242,3 @@ function baixar(){
 </body>
 </html>
 ```
-
----
-
-## 🚀 Agora é só fazer isso:
-
-1. Salvar como `index.html`
-2. Colocar a imagem `euvou.png` na mesma pasta
-3. Abrir no navegador
-
----
-
-Se quiser, posso dar um upgrade agora:
-
-* 🔥 colocar nome automático do corredor
-* 🔥 adicionar botão “centralizar”
-* 🔥 travar imagem dentro da área (não sair pra fora)
-* 🔥 versão pronta pra celular estilo app
-
-Só falar 👍
