@@ -1,220 +1,147 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gerador de Story</title>
-
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0f0f0f;
-  color:#fff;
-  text-align:center;
-}
-.container{
-  max-width:420px;
-  margin:auto;
-  padding:10px;
-}
-canvas{
-  width:100%;
-  border-radius:12px;
-  margin-top:10px;
-  background:#000;
-}
-.controls{
-  background:#1c1c1c;
-  padding:15px;
-  border-radius:12px;
-  margin-top:10px;
-}
-button{
-  margin:5px;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:#3b82f6;
-  color:#fff;
-  font-weight:bold;
-  cursor:pointer;
-}
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador Santo Isidro Run 2026</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; padding: 20px; }
+        .container { max-width: 500px; width: 100%; text-align: center; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        canvas { max-width: 100%; height: auto; border: 1px solid #ccc; margin-top: 10px; border-radius: 10px; }
+        .controls { margin: 20px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; }
+        label { font-size: 12px; font-weight: bold; }
+        input[type="range"] { width: 100%; }
+        .btn-download { background: #28a745; color: white; border: none; padding: 15px 30px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; margin-top: 10px; width: 100%; }
+        .upload-btn { margin-bottom: 10px; }
+    </style>
 </head>
-
 <body>
 
-<h2>Gerar seu Story 🏃</h2>
-
 <div class="container">
+    <h2>Santo Isidro Run 2026</h2>
+    <p>Suba sua foto e ajuste para a moldura</p>
+    
+    <input type="file" id="upload" class="upload-btn" accept="image/*">
 
-<input type="file" id="upload" accept="image/*">
+    <div class="controls">
+        <div>
+            <label>Zoom</label>
+            <input type="range" id="zoom" min="0.1" max="3" step="0.01" value="1">
+        </div>
+        <div>
+            <label>Lado (Esquerda/Direita)</label>
+            <input type="range" id="posX" min="-500" max="500" step="1" value="0">
+        </div>
+        <div>
+            <label>Altura (Cima/Baixo)</label>
+            <input type="range" id="posY" min="-500" max="500" step="1" value="0">
+        </div>
+        <div>
+            <label>Rotação</label>
+            <input type="range" id="rotate" min="0" max="360" step="1" value="0">
+        </div>
+    </div>
 
-<canvas id="canvas"></canvas>
-
-<div class="controls">
-<button onclick="centralizar()">Centralizar</button>
-<button onclick="baixar()">⬇ Baixar</button>
-</div>
-
+    <canvas id="canvas"></canvas>
+    
+    <button id="download" class="btn-download">BAIXAR MINHA FOTO</button>
 </div>
 
 <script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const upload = document.getElementById('upload');
+    const downloadBtn = document.getElementById('download');
+    
+    // Controles
+    const zoomCtrl = document.getElementById('zoom');
+    const posXCtrl = document.getElementById('posX');
+    const posYCtrl = document.getElementById('posY');
+    const rotateCtrl = document.getElementById('rotate');
 
-const W = 1080;
-const H = 1920;
+    const molduraImg = new Image();
+    // IMPORTANTE: Substitua 'euvou.jpg' pelo caminho real da imagem no seu servidor
+    molduraImg.src = 'euvou.jpg'; 
 
-// 🔥 DPR correto
-const dpr = window.devicePixelRatio || 1;
-canvas.width = W * dpr;
-canvas.height = H * dpr;
-ctx.setTransform(dpr,0,0,dpr,0,0);
+    let userImg = null;
+    
+    // Configurações da área do quadrado (ajustado para a sua imagem)
+    // Na sua imagem 1080x1920, o quadrado começa aproximadamente em:
+    const areaX = 125; 
+    const areaY = 225;
+    const areaW = 830; 
+    const areaH = 830;
 
-let imgUser = null;
-let molde = new Image();
-
-molde.src = "euvou.png";
-
-let scale = 1;
-let imgX = 0;
-let imgY = 0;
-
-// 🔥 ÁREA REAL (ajustada pela sua imagem)
-const area = {
-  x: 120,
-  y: 430,
-  w: 840,
-  h: 820,
-  r: 80
-};
-
-// 🔥 GARANTE QUE DESENHA QUANDO A MOLDURA CARREGAR
-molde.onload = () => {
-  draw();
-};
-
-// 🔥 UPLOAD SEM BUG
-document.getElementById("upload").addEventListener("change", function(e){
-  const file = e.target.files[0];
-  if(!file) return;
-
-  const reader = new FileReader();
-
-  reader.onload = function(ev){
-    const img = new Image();
-
-    img.onload = function(){
-      imgUser = img;
-
-      // centraliza automaticamente
-      centralizar();
-
-      // 🔥 GARANTE render
-      draw();
+    molduraImg.onload = () => {
+        canvas.width = molduraImg.width;
+        canvas.height = molduraImg.height;
+        draw();
     };
 
-    img.src = ev.target.result;
-  };
+    upload.addEventListener('change', (e) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            userImg = new Image();
+            userImg.onload = draw;
+            userImg.src = event.target.result;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    });
 
-  reader.readAsDataURL(file);
-});
+    [zoomCtrl, posXCtrl, posYCtrl, rotateCtrl].forEach(ctrl => {
+        ctrl.addEventListener('input', draw);
+    });
 
-// 🔥 CENTRALIZAÇÃO CORRETA
-function centralizar(){
-  if(!imgUser) return;
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const scaleX = area.w / imgUser.width;
-  const scaleY = area.h / imgUser.height;
+        // 1. Desenha a foto do usuário por baixo
+        if (userImg) {
+            ctx.save();
+            // Criar máscara do quadrado arredondado para a foto não vazar
+            roundRect(ctx, areaX, areaY, areaW, areaH, 80);
+            ctx.clip();
 
-  scale = Math.max(scaleX, scaleY);
+            const zoom = parseFloat(zoomCtrl.value);
+            const x = areaX + (areaW / 2) + parseInt(posXCtrl.value);
+            const y = areaY + (areaH / 2) + parseInt(posYCtrl.value);
+            const r = parseInt(rotateCtrl.value) * Math.PI / 180;
 
-  const w = imgUser.width * scale;
-  const h = imgUser.height * scale;
+            ctx.translate(x, y);
+            ctx.rotate(r);
+            
+            const w = userImg.width * zoom;
+            const h = userImg.height * zoom;
+            
+            ctx.drawImage(userImg, -w/2, -h/2, w, h);
+            ctx.restore();
+        }
 
-  imgX = area.x + (area.w - w) / 2;
-  imgY = area.y + (area.h - h) / 2;
-}
+        // 2. Desenha a moldura por cima
+        ctx.drawImage(molduraImg, 0, 0);
+    }
 
-// 🔥 DRAG CORRETO
-let dragging = false;
-let lastX = 0;
-let lastY = 0;
+    // Função para criar o quadrado arredondado (clip)
+    function roundRect(ctx, x, y, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+    }
 
-canvas.addEventListener("mousedown", e=>{
-  dragging = true;
-  lastX = e.offsetX;
-  lastY = e.offsetY;
-});
-
-canvas.addEventListener("mouseup", ()=> dragging = false);
-
-canvas.addEventListener("mousemove", e=>{
-  if(!dragging) return;
-
-  const dx = e.offsetX - lastX;
-  const dy = e.offsetY - lastY;
-
-  imgX += dx;
-  imgY += dy;
-
-  lastX = e.offsetX;
-  lastY = e.offsetY;
-
-  draw();
-});
-
-// 🔥 BORDA ARREDONDADA
-function roundRect(x,y,w,h,r){
-  ctx.beginPath();
-  ctx.moveTo(x+r,y);
-  ctx.lineTo(x+w-r,y);
-  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
-  ctx.lineTo(x+w,y+h-r);
-  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
-  ctx.lineTo(x+r,y+h);
-  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
-  ctx.lineTo(x,y+r);
-  ctx.quadraticCurveTo(x,y,x+r,y);
-  ctx.closePath();
-}
-
-// 🔥 DRAW SEM ERRO
-function draw(){
-  ctx.clearRect(0,0,W,H);
-
-  // FOTO
-  if(imgUser){
-    ctx.save();
-
-    roundRect(area.x,area.y,area.w,area.h,area.r);
-    ctx.clip();
-
-    ctx.drawImage(
-      imgUser,
-      imgX,
-      imgY,
-      imgUser.width * scale,
-      imgUser.height * scale
-    );
-
-    ctx.restore();
-  }
-
-  // MOLDURA
-  ctx.drawImage(molde,0,0,W,H);
-}
-
-// download
-function baixar(){
-  const a = document.createElement("a");
-  a.href = canvas.toDataURL("image/png");
-  a.download = "story.png";
-  a.click();
-}
+    downloadBtn.addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = 'euvou.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    });
 </script>
 
 </body>
