@@ -3,125 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador Santo Isidro Run 2026</title>
+    <title>Gerador Santo Isidro Run</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; padding: 20px; }
-        .container { max-width: 500px; width: 100%; text-align: center; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        canvas { max-width: 100%; height: auto; border: 1px solid #ccc; margin-top: 10px; border-radius: 10px; }
-        .controls { margin: 20px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; }
-        label { font-size: 12px; font-weight: bold; }
-        input[type="range"] { width: 100%; }
-        .btn-download { background: #28a745; color: white; border: none; padding: 15px 30px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; margin-top: 10px; width: 100%; }
-        .upload-btn { margin-bottom: 10px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { max-width: 400px; width: 100%; text-align: center; }
+        
+        /* Simulação do Story */
+        #canvas-container { position: relative; width: 100%; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); background: #333; margin-bottom: 20px; }
+        canvas { width: 100%; display: block; }
+
+        .controls { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 15px; display: grid; gap: 10px; }
+        .control-group { display: flex; flex-direction: column; align-items: flex-start; }
+        label { font-size: 12px; margin-bottom: 5px; color: #aaa; }
+        input[type="range"] { width: 100%; accent-color: #4CAF50; }
+        
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-upload { background: #fff; color: #000; }
+        .btn-download { background: #4CAF50; color: #fff; font-size: 16px; }
+        input[type="file"] { display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Santo Isidro Run 2026</h2>
-    <p>Suba sua foto e ajuste para a moldura</p>
-    
-    <input type="file" id="upload" class="upload-btn" accept="image/*">
+    <h3>PASSO 1: CARREGAR MOLDURA</h3>
+    <button class="btn btn-upload" onclick="document.getElementById('molduraUpload').click()">1. SELECIONAR MOLDURA (euvou.jpg)</button>
+    <input type="file" id="molduraUpload" accept="image/*">
+
+    <h3>PASSO 2: SUA FOTO</h3>
+    <button class="btn btn-upload" onclick="document.getElementById('userUpload').click()">2. SELECIONAR MINHA FOTO</button>
+    <input type="file" id="userUpload" accept="image/*">
 
     <div class="controls">
-        <div>
-            <label>Zoom</label>
+        <div class="control-group">
+            <label>ZOOM</label>
             <input type="range" id="zoom" min="0.1" max="3" step="0.01" value="1">
         </div>
-        <div>
-            <label>Lado (Esquerda/Direita)</label>
-            <input type="range" id="posX" min="-500" max="500" step="1" value="0">
+        <div class="control-group">
+            <label>ESQUERDA / DIREITA</label>
+            <input type="range" id="posX" min="-600" max="600" step="1" value="0">
         </div>
-        <div>
-            <label>Altura (Cima/Baixo)</label>
-            <input type="range" id="posY" min="-500" max="500" step="1" value="0">
-        </div>
-        <div>
-            <label>Rotação</label>
-            <input type="range" id="rotate" min="0" max="360" step="1" value="0">
+        <div class="control-group">
+            <label>CIMA / BAIXO</label>
+            <input type="range" id="posY" min="-600" max="600" step="1" value="0">
         </div>
     </div>
 
-    <canvas id="canvas"></canvas>
-    
-    <button id="download" class="btn-download">BAIXAR MINHA FOTO</button>
+    <div id="canvas-container">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <button id="download" class="btn btn-download">BAIXAR PARA INSTAGRAM</button>
 </div>
 
 <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const upload = document.getElementById('upload');
-    const downloadBtn = document.getElementById('download');
     
-    // Controles
-    const zoomCtrl = document.getElementById('zoom');
-    const posXCtrl = document.getElementById('posX');
-    const posYCtrl = document.getElementById('posY');
-    const rotateCtrl = document.getElementById('rotate');
-
-    const molduraImg = new Image();
-    // IMPORTANTE: Substitua 'euvou.jpg' pelo caminho real da imagem no seu servidor
-    molduraImg.src = 'euvou.jpg'; 
-
-    let userImg = null;
+    // Imagens
+    let imgMoldura = new Image();
+    let imgUsuario = new Image();
     
-    // Configurações da área do quadrado (ajustado para a sua imagem)
-    // Na sua imagem 1080x1920, o quadrado começa aproximadamente em:
-    const areaX = 125; 
-    const areaY = 225;
-    const areaW = 830; 
-    const areaH = 830;
+    // Define tamanho padrão de Story (9:16)
+    canvas.width = 1080;
+    canvas.height = 1920;
 
-    molduraImg.onload = () => {
-        canvas.width = molduraImg.width;
-        canvas.height = molduraImg.height;
-        draw();
-    };
+    // Posição do quadrado branco na sua moldura (ajustado para Instagram Story)
+    const area = { x: 125, y: 425, w: 830, h: 830, radius: 100 };
 
-    upload.addEventListener('change', (e) => {
+    // Upload da Moldura
+    document.getElementById('molduraUpload').addEventListener('change', function(e) {
         const reader = new FileReader();
         reader.onload = (event) => {
-            userImg = new Image();
-            userImg.onload = draw;
-            userImg.src = event.target.result;
+            imgMoldura.onload = draw;
+            imgMoldura.src = event.target.result;
         };
         reader.readAsDataURL(e.target.files[0]);
     });
 
-    [zoomCtrl, posXCtrl, posYCtrl, rotateCtrl].forEach(ctrl => {
-        ctrl.addEventListener('input', draw);
+    // Upload do Corredor
+    document.getElementById('userUpload').addEventListener('change', function(e) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            imgUsuario.onload = draw;
+            imgUsuario.src = event.target.result;
+        };
+        reader.readAsDataURL(e.target.files[0]);
     });
+
+    // Eventos de ajuste
+    const inputs = ['zoom', 'posX', 'posY'];
+    inputs.forEach(id => document.getElementById(id).addEventListener('input', draw));
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 1. Desenha a foto do usuário por baixo
-        if (userImg) {
+        // 1. Desenha a foto do corredor (por baixo)
+        if (imgUsuario.src) {
             ctx.save();
-            // Criar máscara do quadrado arredondado para a foto não vazar
-            roundRect(ctx, areaX, areaY, areaW, areaH, 80);
+            // Criar o recorte arredondado idêntico ao da moldura
+            roundRect(ctx, area.x, area.y, area.w, area.h, area.radius);
             ctx.clip();
 
-            const zoom = parseFloat(zoomCtrl.value);
-            const x = areaX + (areaW / 2) + parseInt(posXCtrl.value);
-            const y = areaY + (areaH / 2) + parseInt(posYCtrl.value);
-            const r = parseInt(rotateCtrl.value) * Math.PI / 180;
+            const zoom = parseFloat(document.getElementById('zoom').value);
+            const px = parseInt(document.getElementById('posX').value);
+            const py = parseInt(document.getElementById('posY').value);
 
-            ctx.translate(x, y);
-            ctx.rotate(r);
+            // Centraliza a foto no meio do quadrado
+            const centerX = area.x + (area.w / 2) + px;
+            const centerY = area.y + (area.h / 2) + py;
             
-            const w = userImg.width * zoom;
-            const h = userImg.height * zoom;
-            
-            ctx.drawImage(userImg, -w/2, -h/2, w, h);
+            const w = imgUsuario.width * zoom;
+            const h = imgUsuario.height * zoom;
+
+            ctx.drawImage(imgUsuario, centerX - w/2, centerY - h/2, w, h);
             ctx.restore();
         }
 
-        // 2. Desenha a moldura por cima
-        ctx.drawImage(molduraImg, 0, 0);
+        // 2. Desenha a moldura (por cima)
+        if (imgMoldura.src) {
+            ctx.drawImage(imgMoldura, 0, 0, 1080, 1920);
+        } else {
+            // Aviso visual enquanto não carrega a moldura
+            ctx.fillStyle = "#444";
+            ctx.font = "30px Arial";
+            ctx.fillText("Carregue a moldura 'euvou.jpg'", 300, 1000);
+        }
     }
 
-    // Função para criar o quadrado arredondado (clip)
     function roundRect(ctx, x, y, width, height, radius) {
         ctx.beginPath();
         ctx.moveTo(x + radius, y);
@@ -136,12 +145,16 @@
         ctx.closePath();
     }
 
-    downloadBtn.addEventListener('click', () => {
+    // Botão Download
+    document.getElementById('download').addEventListener('click', () => {
         const link = document.createElement('a');
-        link.download = 'euvou.png';
+        link.download = 'meu-story-corrida.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
     });
+
+    // Iniciar canvas vazio
+    draw();
 </script>
 
 </body>
